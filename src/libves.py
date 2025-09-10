@@ -1,28 +1,27 @@
 import sys
-import argparse
-from commands.init import cmd_init
-from commands.add import cmd_add
-from commands.commit import cmd_commit
-from commands.ls_files import cmd_ls_files
-from commands.cat_file import cmd_cat_file
-from commands.hash_object import cmd_hash_object
-from commands.log import cmd_log
-from commands.ls_tree import cmd_ls_tree
-from commands.checkout import cmd_checkout
-from commands.rm import cmd_rm
-from commands.status import cmd_status
-from commands.check_ignore import cmd_check_ignore
-from commands.tag import cmd_tag
-from commands.rev_parse import cmd_rev_parse
-from commands.show_ref import cmd_show_ref
+from typing import List
+
+from src.commands.init import cmd_init
+from src.commands.add import cmd_add
+from src.commands.commit import cmd_commit
+from src.commands.ls_files import cmd_ls_files
+from src.commands.cat_file import cmd_cat_file
+from src.commands.hash_object import cmd_hash_object
+from src.commands.log import cmd_log
+from src.commands.ls_tree import cmd_ls_tree
+from src.commands.checkout import cmd_checkout
+from src.commands.rm import cmd_rm
+from src.commands.status import cmd_status
+from src.commands.check_ignore import cmd_check_ignore
+from src.commands.tag import cmd_tag
+from src.commands.rev_parse import cmd_rev_parse
+from src.commands.show_ref import cmd_show_ref
+from src.cli import get_parser
+
+argparser = get_parser()
 
 
-argparser = argparse.ArgumentParser(description="The stupidest content tracker")
-argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
-argsubparsers.required = True
-
-
-def main(argv=sys.argv[1:]):
+def main(argv: List[str] = sys.argv[1:]) -> None:
     args = argparser.parse_args(argv)
     match args.command:
         case "add":
