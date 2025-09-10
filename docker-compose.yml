@@ -1,0 +1,21 @@
+services:
+  vestigium-test:
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app
+    command: python -m pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml
+
+  vestigium-dev:
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app
+    hostname: vestigium
+    command: /bin/bash
+    stdin_open: true
+    tty: true
