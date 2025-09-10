@@ -1,14 +1,20 @@
-import argparse
-import configparser
-from datetime import datetime
-import grp, pwd
-from fnmatch import fnmatch
-import hashlib
-from math import ceil
-import os
-import re
 import sys
-import zlib
+import argparse
+from commands.init import cmd_init
+from commands.add import cmd_add
+from commands.commit import cmd_commit
+from commands.ls_files import cmd_ls_files
+from commands.cat_file import cmd_cat_file
+from commands.hash_object import cmd_hash_object
+from commands.log import cmd_log
+from commands.ls_tree import cmd_ls_tree
+from commands.checkout import cmd_checkout
+from commands.rm import cmd_rm
+from commands.status import cmd_status
+from commands.check_ignore import cmd_check_ignore
+from commands.tag import cmd_tag
+from commands.rev_parse import cmd_rev_parse
+from commands.show_ref import cmd_show_ref
 
 
 argparser = argparse.ArgumentParser(description="The stupidest content tracker")
@@ -51,63 +57,3 @@ def main(argv=sys.argv[1:]):
             cmd_tag(args)
         case _:
             print("Bad command.")
-
-
-def cmd_add(args):
-    pass
-
-
-def cmd_cat_file(args):
-    pass
-
-
-def cmd_check_ignore(args):
-    pass
-
-
-def cmd_checkout(args):
-    pass
-
-
-def cmd_commit(args):
-    pass
-
-
-def cmd_hash_object(args):
-    pass
-
-
-def cmd_init(args):
-    pass
-
-
-def cmd_log(args):
-    pass
-
-
-def cmd_ls_files(args):
-    pass
-
-
-def cmd_ls_tree(args):
-    pass
-
-
-def cmd_rev_parse(args):
-    pass
-
-
-def cmd_rm(args):
-    pass
-
-
-def cmd_show_ref(args):
-    pass
-
-
-def cmd_status(args):
-    pass
-
-
-def cmd_tag(args):
-    pass
