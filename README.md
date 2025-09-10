@@ -2,6 +2,10 @@
 
 A simple Version Control System (VCS) built in Python for educational purposes.
 
+[![CI Tests](https://github.com/MarinCervinschi/Vestigium/actions/workflows/ci.yml/badge.svg)](https://github.com/MarinCervinschi/Vestigium/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/MarinCervinschi/Vestigium/branch/main/graph/badge.svg)](https://codecov.io/gh/MarinCervinschi/Vestigium)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+
 ⚠️ **This project is in early development phase** - More commands and features will be added progressively.
 
 ## Features
