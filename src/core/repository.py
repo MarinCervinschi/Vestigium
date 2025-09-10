@@ -39,6 +39,10 @@ class VesRepository:
     def vesdir(self) -> str:
         return self._vesdir
 
+    @property
+    def conf(self) -> configparser.ConfigParser:
+        return self._conf
+
 
 def repo_path(repo: VesRepository, *path: str) -> str:
     """
