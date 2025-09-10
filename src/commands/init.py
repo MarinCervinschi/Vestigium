@@ -1,5 +1,6 @@
-from src.core.repository import repo_create
 from argparse import Namespace
+
+from src.core.repository import repo_create
 
 
 def cmd_init(args: Namespace) -> None:
