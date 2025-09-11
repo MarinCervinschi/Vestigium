@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import IO, ClassVar, Optional
 
 from src.core.repository import VesRepository, repo_file
+from src.utils.kvlm import kvlm_parse, kvlm_serialize
 
 
 @dataclass
@@ -78,19 +79,52 @@ class VesCommit(VesObject):
 
     Commits store metadata about a change including author, committer,
     timestamp, commit message, and references to tree and parent commits.
+    The commit data is stored in KVLM (Key-Value List with Message) format.
+
+    Attributes:
+        kvlm (dict): Dictionary containing commit metadata with the following structure:
+                    - b'tree': SHA of the tree object
+                    - b'parent': SHA of parent commit(s) (can be multiple for merges)
+                    - b'author': Author information (name, email, timestamp)
+                    - b'committer': Committer information (name, email, timestamp)
+                    - None: Commit message (stored with key None)
+
+
     """
 
     fmt: ClassVar[bytes] = b"commit"
 
-    def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
-        """Serialize commit object to bytes."""
-        # TODO: Implement commit serialization
-        return b""
+    def __init__(self, data: Optional[bytes] = None) -> None:
+        """
+        Initialize a commit object.
+
+        Args:
+            data (Optional[bytes]): Raw commit data in KVLM format to deserialize.
+                                  If None, creates an empty commit object.
+        """
+        super().__init__(data)
+
+    def serialize(self) -> bytes:
+        """
+        Serialize commit object to bytes in KVLM format.
+
+        Returns:
+            bytes: Serialized commit data ready for storage.
+        """
+        return kvlm_serialize(self.kvlm)
 
     def deserialize(self, data: bytes) -> None:
-        """Deserialize bytes into commit object."""
-        # TODO: Implement commit deserialization
-        pass
+        """
+        Deserialize bytes into commit object.
+
+        Args:
+            data (bytes): Raw commit data in KVLM format from object store.
+        """
+        self.kvlm = kvlm_parse(data)
+
+    def init(self) -> None:
+        """Initialize an empty commit object with empty KVLM dictionary."""
+        self.kvlm = dict()
 
 
 class VesTree(VesObject):
