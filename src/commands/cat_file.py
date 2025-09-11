@@ -24,7 +24,6 @@ def cmd_cat_file(args: Namespace) -> None:
     """
     repo = repo_find()
     if repo is None:
-        print("Not in a Ves repository.")
         return
     cat_file(repo, args.object, fmt=args.type.encode())
 
