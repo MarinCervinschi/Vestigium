@@ -3,7 +3,7 @@ import os
 import zlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar, Optional, IO
+from typing import IO, ClassVar, Optional
 
 from src.core.repository import VesRepository, repo_file
 

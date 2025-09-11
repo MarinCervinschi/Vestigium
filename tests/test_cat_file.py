@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-
 from src.commands.cat_file import cmd_cat_file
 from src.commands.hash_object import cmd_hash_object
 from src.commands.init import cmd_init
