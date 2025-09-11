@@ -3,7 +3,7 @@ import os
 import zlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional
+from typing import ClassVar, Optional
 
 from src.core.repository import VesRepository, repo_file
 
@@ -17,6 +17,8 @@ class VesObject(ABC):
     Objects can be created from raw byte data (when reading from storage)
     or initialized empty (when creating new objects).
     """
+
+    fmt: ClassVar[bytes]  # Must be defined by subclasses
 
     def __init__(self, data: Optional[bytes] = None) -> None:
         """
@@ -32,7 +34,7 @@ class VesObject(ABC):
             self.init()
 
     @abstractmethod
-    def serialize(self, repo: VesRepository) -> bytes:
+    def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
         """
         Serialize the object to bytes for storage.
 
@@ -40,7 +42,7 @@ class VesObject(ABC):
         internal representation back to the byte format used for storage.
 
         Args:
-            repo (VesRepository): The repository context for serialization.
+            repo (Optional[VesRepository]): The repository context for serialization.
 
         Returns:
             bytes: The serialized object data.
@@ -78,7 +80,9 @@ class VesCommit(VesObject):
     timestamp, commit message, and references to tree and parent commits.
     """
 
-    def serialize(self, repo: VesRepository) -> bytes:
+    fmt: ClassVar[bytes] = b"commit"
+
+    def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
         """Serialize commit object to bytes."""
         # TODO: Implement commit serialization
         return b""
@@ -97,7 +101,9 @@ class VesTree(VesObject):
     and SHA hashes of the contained objects.
     """
 
-    def serialize(self, repo: VesRepository) -> bytes:
+    fmt: ClassVar[bytes] = b"tree"
+
+    def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
         """Serialize tree object to bytes."""
         # TODO: Implement tree serialization
         return b""
@@ -116,7 +122,9 @@ class VesTag(VesObject):
     specific versions or releases.
     """
 
-    def serialize(self, repo: VesRepository) -> bytes:
+    fmt: ClassVar[bytes] = b"tag"
+
+    def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
         """Serialize tag object to bytes."""
         # TODO: Implement tag serialization
         return b""
@@ -136,15 +144,19 @@ class VesBlob(VesObject):
     permissions - that information is stored in tree objects.
     """
 
-    def serialize(self, repo: VesRepository) -> bytes:
+    fmt: ClassVar[bytes] = b"blob"
+
+    def __init__(self, data: Optional[bytes] = None) -> None:
+        self.blobdata: bytes = b""
+        super().__init__(data)
+
+    def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
         """Serialize blob object to bytes."""
-        # TODO: Implement blob serialization
-        return b""
+        return self.blobdata
 
     def deserialize(self, data: bytes) -> None:
         """Deserialize bytes into blob object."""
-        # TODO: Implement blob deserialization
-        pass
+        self.blobdata = data
 
 
 def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
@@ -170,11 +182,6 @@ def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
     Raises:
         Exception: If the object is malformed (wrong size) or has unknown type.
 
-    Example:
-        repo = repo_find()
-        obj = object_read(repo, "a1b2c3d4e5f6...")
-        if obj:
-            print(f"Found object of type: {type(obj).__name__}")
     """
     path = repo_file(repo, "objects", sha[:2], sha[2:])
 
@@ -206,3 +213,39 @@ def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
                 raise Exception(f"Unknown type {fmt.decode('ascii')} for object {sha}")
 
         return c(raw[object_size_end + 1 :])
+
+
+def object_write(obj: VesObject, repo: Optional[VesRepository] = None) -> str:
+    """
+    Writes and compresses a VCS object to the repository's object store.
+
+    This function serializes a VCS object, calculates its SHA-1 hash, and stores
+    it in the repository's object store if provided. The object is compressed
+    using zlib before storage.
+
+    Object storage format:
+        - Objects are stored in .ves/objects/{first_2_chars}/{remaining_chars}
+        - Content is zlib-compressed
+        - Format: {type} {size}\0{content}
+
+    Args:
+        obj (VesObject): The VCS object to write (VesBlob, VesTree, VesCommit, or VesTag).
+        repo (Optional[VesRepository]): The repository to write to. If None,
+                                      only calculates the SHA without storing.
+
+    Returns:
+        str: The SHA-1 hash of the object (40 hex characters).
+    """
+    data = obj.serialize()
+
+    # Create the object format: {type} {size}\0{content}
+    result = obj.fmt + b" " + str(len(data)).encode() + b"\x00" + data
+    sha = hashlib.sha1(result).hexdigest()
+
+    if repo:
+        path = repo_file(repo, "objects", sha[:2], sha[2:], mkdir=True)
+
+        if path is not None and not os.path.exists(path):
+            with open(path, "wb") as f:
+                f.write(zlib.compress(result))
+    return sha
