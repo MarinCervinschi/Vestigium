@@ -7,6 +7,7 @@ from typing import IO, ClassVar, Optional
 
 from src.core.repository import VesRepository, repo_file
 from src.utils.kvlm import kvlm_parse, kvlm_serialize
+from src.utils.tree import VesTreeLeaf, tree_parse, tree_serialize
 
 
 @dataclass
@@ -137,15 +138,20 @@ class VesTree(VesObject):
 
     fmt: ClassVar[bytes] = b"tree"
 
-    def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
+    def __init__(self, data: Optional[bytes] = None) -> None:
+        self.items: list[VesTreeLeaf] = list()
+        super().__init__(data)
+
+    def serialize(self) -> bytes:
         """Serialize tree object to bytes."""
-        # TODO: Implement tree serialization
-        return b""
+        return tree_serialize(self)
 
     def deserialize(self, data: bytes) -> None:
         """Deserialize bytes into tree object."""
-        # TODO: Implement tree deserialization
-        pass
+        self.items = tree_parse(data)
+
+    def init(self) -> None:
+        self.items = list()
 
 
 class VesTag(VesObject):
