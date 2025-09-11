@@ -62,4 +62,8 @@ def get_parser() -> ArgumentParser:
 
     argsp.add_argument("path", help="Read object from <file>")
 
+    # log
+    argsp = argsubparsers.add_parser("log", help="Display history of a given commit.")
+    argsp.add_argument("commit", default="HEAD", nargs="?", help="Commit to start at.")
+
     return argparser
