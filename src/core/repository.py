@@ -162,3 +162,34 @@ def repo_default_config() -> configparser.ConfigParser:
     ret.set("core", "filemode", "false")
     ret.set("core", "bare", "false")
     return ret
+
+
+def repo_find(path: str = ".", required: bool = True) -> Optional[VesRepository]:
+    """
+    Finds a VesRepository by searching upward through the directory tree starting from the given path.
+
+    Args:
+        path (str): The starting path to search from. Defaults to current directory (".").
+        required (bool): If True, raises an exception when no repository is found.
+                        If False, returns None when no repository is found.
+
+    Returns:
+        Optional[VesRepository]: The VesRepository object if found, None if not found and required=False.
+
+    Raises:
+        Exception: If no repository is found and required=True.
+    """
+
+    path = os.path.realpath(path)
+
+    if os.path.isdir(os.path.join(path, ".ves")):
+        return VesRepository(path)
+
+    parent = os.path.realpath(os.path.join(path, ".."))
+    if parent == path:
+        if required:
+            raise Exception("No ves directory.")
+        else:
+            return None
+
+    return repo_find(parent, required)
