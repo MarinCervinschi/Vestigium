@@ -64,3 +64,54 @@ def kvlm_parse(raw: bytes, start: int = 0, dct: Optional[dict] = None) -> dict:
         dct[key] = value
 
     return kvlm_parse(raw, start=end + 1, dct=dct)
+
+
+def kvlm_serialize(kvlm: dict) -> bytes:
+    """
+    Serialize a KVLM dictionary back to bytes format.
+
+    Converts a dictionary containing key-value pairs and a message back to the
+    KVLM (Key-Value List with Message) format used in Git objects. This is the
+    inverse operation of kvlm_parse().
+
+    Args:
+        kvlm (dict): Dictionary containing key-value pairs and message.
+                     The message should be stored with key None.
+                     Values can be bytes or lists of bytes for duplicate keys.
+
+    Returns:
+        bytes: Serialized KVLM data in the format:
+               - Key-value pairs as "key value\n"
+               - Continuation lines with leading spaces
+               - Blank line followed by the message
+
+    Example:
+        >>> kvlm_dict = {
+        ...     b'author': b'John Doe',
+        ...     b'committer': b'Jane Smith',
+        ...     None: b'Commit message'
+        ... }
+        >>> result = kvlm_serialize(kvlm_dict)
+        >>> result
+        b'author John Doe\ncommitter Jane Smith\n\nCommit message'
+    """
+
+    ret = b""
+
+    for k in kvlm.keys():
+        # Skip the message itself
+        if k == None:
+            continue
+        val = kvlm[k]
+        # Normalize to a list to handle duplicate keys
+        if type(val) != list:
+            val = [val]
+
+        for v in val:
+            # Add spaces after newlines for continuation lines
+            ret += k + b" " + (v.replace(b"\n", b"\n ")) + b"\n"
+
+    # Append blank line and message
+    ret += b"\n" + kvlm[None]
+
+    return ret
