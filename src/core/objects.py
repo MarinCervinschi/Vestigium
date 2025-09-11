@@ -3,7 +3,7 @@ import os
 import zlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar, Optional, IO
 
 from src.core.repository import VesRepository, repo_file
 
@@ -249,3 +249,55 @@ def object_write(obj: VesObject, repo: Optional[VesRepository] = None) -> str:
             with open(path, "wb") as f:
                 f.write(zlib.compress(result))
     return sha
+
+
+def object_find(
+    repo: VesRepository, name, fmt: Optional[bytes] = None, follow: bool = True
+) -> str:
+    """
+    Finds a VCS object by its name (SHA-1 hash or filename) in the repository.
+
+    Args:
+        repo (VesRepository): The repository to search in.
+        name (str): The name (SHA-1 hash or filename) of the object to find.
+        fmt (Optional[bytes]): The expected format of the object (e.g., b"blob").
+        follow (bool): Whether to follow symlinks (if any) to find the object.
+
+    Returns:
+        Optional[str]: The SHA-1 hash of the found object, or None if not found.
+    """
+    # TODO: Implement object finding logic (e.g., resolving short SHAs, filenames)
+    # For now, assume name is a full SHA-1 hash
+    return name
+
+
+def object_hash(fd: IO[bytes], fmt: bytes, repo: Optional[VesRepository] = None) -> str:
+    """
+    Computes the hash of a version control object from a file-like input and writes it to the repository if provided.
+
+    Args:
+        fd (IO[bytes]): A file-like object opened in binary mode containing the object data.
+        fmt (bytes): The type of the object, must be one of b"commit", b"tree", b"tag", or b"blob".
+        repo (Optional[VesRepository], optional): The repository to write the object to. Defaults to None.
+
+    Returns:
+        str: The hash of the object.
+
+    Raises:
+        Exception: If an unknown object type is provided in fmt.
+    """
+    data = fd.read()
+
+    match fmt:
+        case b"commit":
+            obj = VesCommit(data)
+        case b"tree":
+            obj = VesTree(data)
+        case b"tag":
+            obj = VesTag(data)
+        case b"blob":
+            obj = VesBlob(data)
+        case _:
+            raise Exception(f"Unknown type {fmt}!")
+
+    return object_write(obj, repo)
