@@ -1,8 +1,8 @@
+import os
 from argparse import Namespace
 
+from src.core.objects import VesCommit, VesTree, object_find, object_read
 from src.core.repository import repo_find
-from src.core.objects import object_read, object_find, VesCommit, VesTree
-import os
 from src.utils.tree import tree_checkout
 
 

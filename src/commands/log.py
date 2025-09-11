@@ -1,6 +1,7 @@
-from src.core.objects import object_read, object_find, VesCommit
-from src.core.repository import repo_find, VesRepository
 from argparse import Namespace
+
+from src.core.objects import VesCommit, object_find, object_read
+from src.core.repository import VesRepository, repo_find
 
 
 def cmd_log(args: Namespace) -> None:

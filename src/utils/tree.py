@@ -1,5 +1,6 @@
 import os
-from src.core.objects import VesTree, object_read, VesBlob
+
+from src.core.objects import VesBlob, VesTree, object_read
 from src.core.repository import VesRepository
 
 
