@@ -56,8 +56,8 @@ docker compose run --rm vestigium-dev
 Currently implemented:
 
 - `init [path]`: Initialize a new repository (default: current directory)
-- `hash-object <file> --type <type>`: Hash a file and store it as an object
-- `cat-file <object> --type <type>`: Display the content of an object
+- `hash-object [-t <type>] [-w] <path>`: Hash a file and store it as an object
+- `cat-file <type> <object>`: Display the content of an object
 
 Coming soon:
 
