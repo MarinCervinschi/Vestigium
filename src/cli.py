@@ -74,4 +74,11 @@ def get_parser() -> ArgumentParser:
 
     argsp.add_argument("tree", help="A tree-ish object.")
 
+    # checkout
+    argsp = argsubparsers.add_parser(
+        "checkout", help="Checkout a commit inside of a directory."
+    )
+    argsp.add_argument("commit", help="The commit or tree to checkout.")
+    argsp.add_argument("path", help="The EMPTY directory to checkout on.")
+
     return argparser

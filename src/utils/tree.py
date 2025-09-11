@@ -1,3 +1,8 @@
+import os
+from src.core.objects import VesTree, object_read, VesBlob
+from src.core.repository import VesRepository
+
+
 class VesTreeLeaf(object):
     """
     Represents a single entry in a Ves tree object.
@@ -106,3 +111,35 @@ def tree_serialize(obj):
         sha = int(i.sha, 16)
         ret += sha.to_bytes(20, byteorder="big")
     return ret
+
+
+def tree_checkout(repo: VesRepository, tree: VesTree, path: str) -> None:
+    """
+    Recursively checks out the contents of a VesTree object to the specified filesystem path.
+    For each item in the tree:
+    - If the item is a tree, creates a corresponding directory and recursively checks out its contents.
+    - If the item is a blob, writes its data to a file at the destination path.
+    - Raises an exception if an object cannot be read.
+    Args:
+        repo (VesRepository): The repository from which to read objects.
+        tree (VesTree): The tree object representing the directory structure to check out.
+        path (str): The filesystem path where the tree should be checked out.
+    Raises:
+        Exception: If an object cannot be read from the repository.
+    """
+
+    for item in tree.items:
+        obj = object_read(repo, item.sha)
+        if obj is None:
+            raise Exception(f"Failed to read object {item.sha}")
+        dest = os.path.join(path, item.path)
+
+        if obj.fmt == b"tree":
+            assert isinstance(obj, VesTree)
+            os.mkdir(dest)
+            tree_checkout(repo, obj, dest)
+        elif obj.fmt == b"blob":
+            assert isinstance(obj, VesBlob)
+            # @TODO Support symlinks (identified by mode 12****)
+            with open(dest, "wb") as f:
+                f.write(obj.blobdata)
