@@ -1,11 +1,11 @@
-import zlib
 import hashlib
 import os
-from dataclasses import dataclass
+import zlib
 from abc import ABC, abstractmethod
-from src.core.repository import VesRepository
-from src.core.repository import repo_file
+from dataclasses import dataclass
 from typing import Optional
+
+from src.core.repository import VesRepository, repo_file
 
 
 @dataclass
@@ -68,67 +68,6 @@ class VesObject(ABC):
         for new objects. The default implementation does nothing.
         """
         pass
-
-
-def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
-    """
-    Reads and deserializes a VCS object from the repository's object store.
-
-    This function locates an object by its SHA hash, decompresses it using zlib,
-    parses the object header to determine its type and size, and creates the
-    appropriate object instance (VesBlob, VesTree, VesCommit, or VesTag).
-
-    Object storage format:
-        - Objects are stored in .ves/objects/{first_2_chars}/{remaining_chars}
-        - Content is zlib-compressed
-        - Format: {type} {size}\0{content}
-
-    Args:
-        repo (VesRepository): The repository to read from.
-        sha (str): The SHA-1 hash of the object to read (40 hex characters).
-
-    Returns:
-        Optional[VesObject]: The deserialized object instance, or None if not found.
-
-    Raises:
-        Exception: If the object is malformed (wrong size) or has unknown type.
-
-    Example:
-        repo = repo_find()
-        obj = object_read(repo, "a1b2c3d4e5f6...")
-        if obj:
-            print(f"Found object of type: {type(obj).__name__}")
-    """
-    path = repo_file(repo, "objects", sha[:2], sha[2:])
-
-    if path is None or not os.path.isfile(path):
-        return None
-
-    with open(path, "rb") as f:
-        raw = zlib.decompress(f.read())
-
-        object_type_end = raw.find(b" ")
-        fmt = raw[:object_type_end]
-
-        object_size_end = raw.find(b"\x00", object_type_end)
-        size = int(raw[object_type_end:object_size_end].decode("ascii"))
-
-        if size != len(raw) - object_size_end - 1:
-            raise Exception(f"Malformed object {sha}: bad length")
-
-        match fmt:
-            case b"commit":
-                c = VesCommit
-            case b"tree":
-                c = VesTree
-            case b"tag":
-                c = VesTag
-            case b"blob":
-                c = VesBlob
-            case _:
-                raise Exception(f"Unknown type {fmt.decode('ascii')} for object {sha}")
-
-        return c(raw[object_size_end + 1 :])
 
 
 class VesCommit(VesObject):
@@ -206,3 +145,64 @@ class VesBlob(VesObject):
         """Deserialize bytes into blob object."""
         # TODO: Implement blob deserialization
         pass
+
+
+def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
+    """
+    Reads and deserializes a VCS object from the repository's object store.
+
+    This function locates an object by its SHA hash, decompresses it using zlib,
+    parses the object header to determine its type and size, and creates the
+    appropriate object instance (VesBlob, VesTree, VesCommit, or VesTag).
+
+    Object storage format:
+        - Objects are stored in .ves/objects/{first_2_chars}/{remaining_chars}
+        - Content is zlib-compressed
+        - Format: {type} {size}\0{content}
+
+    Args:
+        repo (VesRepository): The repository to read from.
+        sha (str): The SHA-1 hash of the object to read (40 hex characters).
+
+    Returns:
+        Optional[VesObject]: The deserialized object instance, or None if not found.
+
+    Raises:
+        Exception: If the object is malformed (wrong size) or has unknown type.
+
+    Example:
+        repo = repo_find()
+        obj = object_read(repo, "a1b2c3d4e5f6...")
+        if obj:
+            print(f"Found object of type: {type(obj).__name__}")
+    """
+    path = repo_file(repo, "objects", sha[:2], sha[2:])
+
+    if path is None or not os.path.isfile(path):
+        return None
+
+    with open(path, "rb") as f:
+        raw = zlib.decompress(f.read())
+
+        object_type_end = raw.find(b" ")
+        fmt = raw[:object_type_end]
+
+        object_size_end = raw.find(b"\x00", object_type_end)
+        size = int(raw[object_type_end:object_size_end].decode("ascii"))
+
+        if size != len(raw) - object_size_end - 1:
+            raise Exception(f"Malformed object {sha}: bad length")
+
+        match fmt:
+            case b"commit":
+                c = VesCommit
+            case b"tree":
+                c = VesTree
+            case b"tag":
+                c = VesTag
+            case b"blob":
+                c = VesBlob
+            case _:
+                raise Exception(f"Unknown type {fmt.decode('ascii')} for object {sha}")
+
+        return c(raw[object_size_end + 1 :])
