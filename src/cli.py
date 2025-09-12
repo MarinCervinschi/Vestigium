@@ -81,4 +81,7 @@ def get_parser() -> ArgumentParser:
     argsp.add_argument("commit", help="The commit or tree to checkout.")
     argsp.add_argument("path", help="The EMPTY directory to checkout on.")
 
+    # show-ref
+    argsp = argsubparsers.add_parser("show-ref", help="List references.")
+
     return argparser
