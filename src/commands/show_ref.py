@@ -1,7 +1,7 @@
 from argparse import Namespace
-from src.core.repository import repo_find
-from src.core.refs import ref_list, RefDict
-from src.core.repository import VesRepository
+
+from src.core.refs import RefDict, ref_list
+from src.core.repository import VesRepository, repo_find
 
 
 def cmd_show_ref() -> None:

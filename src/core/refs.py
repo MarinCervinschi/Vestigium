@@ -1,7 +1,7 @@
-from typing import Optional, Dict, Union
 import os
-from src.core.repository import VesRepository, repo_file, repo_dir
+from typing import Dict, Optional, Union
 
+from src.core.repository import VesRepository, repo_dir, repo_file
 
 # Type alias for recursive reference structure
 RefDict = Dict[str, Union[str, None, "RefDict"]]
@@ -9,9 +9,9 @@ RefDict = Dict[str, Union[str, None, "RefDict"]]
 
 def ref_resolve(repo: VesRepository, ref: str) -> Optional[str]:
     """
-    Resolve a Git reference to its final SHA hash.
+    Resolve a Ves reference to its final SHA hash.
 
-    Git references can be either direct (containing a SHA hash) or symbolic
+    Ves references can be either direct (containing a SHA hash) or symbolic
     (containing "ref: path/to/another/ref"). This function recursively follows
     symbolic references until it finds a concrete SHA hash.
 
@@ -29,7 +29,7 @@ def ref_resolve(repo: VesRepository, ref: str) -> Optional[str]:
 
     Note:
         This function handles the recursive resolution of symbolic references,
-        which is common in Git (e.g., HEAD -> refs/heads/master -> commit SHA).
+        which is common in Ves (e.g., HEAD -> refs/heads/master -> commit SHA).
     """
     path = repo_file(repo, ref)
 
@@ -49,7 +49,7 @@ def ref_resolve(repo: VesRepository, ref: str) -> Optional[str]:
 
 def ref_list(repo: VesRepository, path: Optional[str] = None) -> RefDict:
     """
-    Recursively list all Git references in a directory.
+    Recursively list all Ves references in a directory.
 
     This function traverses the refs directory structure and builds a nested
     dictionary containing all references. It handles both files (individual refs)
