@@ -54,6 +54,8 @@ def ls_tree(
         symlinks, directories, and submodules.
     """
     sha = object_find(repo, ref, fmt=b"tree")
+    if sha is None:
+        return
     obj = object_read(repo, sha)
     if obj is None:
         return

@@ -1,14 +1,15 @@
 import hashlib
-import os, re
+import os
+import re
 import zlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import IO, ClassVar, Optional, List
+from typing import IO, ClassVar, List, Optional
 
-from src.core.repository import VesRepository, repo_file, repo_dir
+from src.core.refs import ref_resolve
+from src.core.repository import VesRepository, repo_dir, repo_file
 from src.utils.kvlm import kvlm_parse, kvlm_serialize
 from src.utils.tree import VesTreeLeaf, tree_parse, tree_serialize
-from src.core.refs import ref_resolve
 
 
 @dataclass

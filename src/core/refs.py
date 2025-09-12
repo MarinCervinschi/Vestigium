@@ -139,6 +139,8 @@ def tag_create(
         under refs/tags/<name>.
     """
     sha = object_find(repo, ref)
+    if sha is None:
+        raise Exception(f"Cannot find object {ref}")
 
     if create_tag_object:
         tag = VesTag()

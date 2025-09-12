@@ -2,7 +2,7 @@ import sys
 from argparse import Namespace
 from typing import Optional
 
-from src.core.objects import VesObject, object_find, object_read
+from src.core.objects import object_find, object_read
 from src.core.repository import VesRepository, repo_find
 
 
@@ -28,9 +28,7 @@ def cmd_cat_file(args: Namespace) -> None:
     cat_file(repo, args.object, fmt=args.type.encode())
 
 
-def cat_file(
-    repo: VesRepository, obj: Optional[VesObject], fmt: Optional[bytes] = None
-) -> None:
+def cat_file(repo: VesRepository, obj: str, fmt: Optional[bytes] = None) -> None:
     """Display the content of a Ves object in the repository.
 
     This function searches for an object in the repository using the provided name or hash,
@@ -39,7 +37,7 @@ def cat_file(
 
     Args:
         repo (VesRepository): The Ves repository to search for the object
-        obj (Optional[VesObject]): Name, partial hash or object to display.
+        obj (str): Name, partial hash or object to display.
             If None, the function returns without errors
         fmt (Optional[bytes], optional): Expected object type (blob, tree, commit, tag).
             If specified, used to disambiguate objects with similar hashes.
@@ -52,8 +50,10 @@ def cat_file(
         No exceptions are raised directly, but prints error messages
         if the object is not found or cannot be read
     """
-    obj = object_read(repo, object_find(repo, obj, fmt=fmt))
-    if obj is None:
-        print("Object not found.")
+    sha = object_find(repo, obj, fmt=fmt)
+    if sha is None:
         return
-    sys.stdout.buffer.write(obj.serialize())
+    obj_read = object_read(repo, sha)
+    if obj_read is None:
+        return
+    sys.stdout.buffer.write(obj_read.serialize())

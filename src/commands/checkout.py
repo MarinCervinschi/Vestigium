@@ -34,7 +34,10 @@ def cmd_checkout(args: Namespace) -> None:
     if repo is None:
         return
 
-    obj = object_read(repo, object_find(repo, args.commit))
+    sha = object_find(repo, args.commit)
+    if sha is None:
+        return
+    obj = object_read(repo, sha)
     if obj is None:
         return
 

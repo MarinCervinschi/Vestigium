@@ -35,7 +35,10 @@ def cmd_log(args: Namespace) -> None:
 
     print("digraph wyaglog{")
     print("  node[shape=rect]")
-    log_graphviz(repo, object_find(repo, args.commit), set())
+    sha = object_find(repo, args.commit)
+    if sha is None:
+        return
+    log_graphviz(repo, sha, set())
     print("}")
 
 
