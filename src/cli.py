@@ -112,4 +112,8 @@ def get_parser() -> ArgumentParser:
     )
     argsp.add_argument("name", help="The name to parse")
 
+    # ls-files
+    argsp = argsubparsers.add_parser("ls-files", help="List all the stage files")
+    argsp.add_argument("--verbose", action="store_true", help="Show everything.")
+
     return argparser
