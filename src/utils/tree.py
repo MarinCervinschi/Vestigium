@@ -5,7 +5,7 @@ from src.core.repository import VesRepository
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.core.objects import VesBlob, VesTree, object_read
+    from src.core.objects import VesBlob, VesTree
 
 
 class VesTreeLeaf(object):
@@ -132,6 +132,7 @@ def tree_checkout(repo: VesRepository, tree: "VesTree", path: str) -> None:
     Raises:
         Exception: If an object cannot be read from the repository.
     """
+    from src.core.objects import object_read
 
     for item in tree.items:
         obj = object_read(repo, item.sha)
@@ -148,3 +149,57 @@ def tree_checkout(repo: VesRepository, tree: "VesTree", path: str) -> None:
             # @TODO Support symlinks (identified by mode 12****)
             with open(dest, "wb") as f:
                 f.write(obj.blobdata)
+
+
+def tree_to_dict(repo: VesRepository, ref: str, prefix: str = "") -> dict[str, str]:
+    """
+    Convert a tree object to a dictionary mapping file paths to SHA hashes.
+
+    This function recursively traverses a tree object and builds a flat dictionary
+    where keys are file paths (relative to the tree root) and values are the
+    corresponding SHA hashes of the file contents (blobs).
+
+    Subdirectories (trees) are recursively processed to include all nested files
+    in the resulting dictionary. The function handles the prefix path to maintain
+    the correct relative paths in nested calls.
+
+    Args:
+        repo: The VesRepository instance to read objects from
+        ref: Reference to the tree object (SHA hash, branch name, or tag)
+        prefix: Path prefix for nested calls (used internally for recursion)
+
+    Returns:
+        A dictionary mapping file paths to their SHA hashes. Returns empty
+        dictionary if the reference cannot be found or read.
+
+    Note:
+        This function is useful for comparing tree states, as it flattens
+        the hierarchical tree structure into a simple path->hash mapping.
+    """
+    from src.core.objects import object_find, object_read
+
+    ret = dict()
+    tree_sha = object_find(repo, ref, fmt=b"tree")
+    if tree_sha is None:
+        return ret
+    tree = object_read(repo, tree_sha)
+    if tree is None:
+        return ret
+
+    assert isinstance(tree, "VesTree")
+    for leaf in tree.items:
+        full_path = os.path.join(prefix, leaf.path)
+
+        # We read the object to extract its type (this is uselessly
+        # expensive: we could just open it as a file and read the
+        # first few bytes)
+        is_subtree = leaf.mode.startswith(b"04")
+
+        # Depending on the type, we either store the path (if it's a
+        # blob, so a regular file), or recurse (if it's another tree,
+        # so a subdir)
+        if is_subtree:
+            ret.update(tree_to_dict(repo, leaf.sha, full_path))
+        else:
+            ret[full_path] = leaf.sha
+    return ret
