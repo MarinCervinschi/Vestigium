@@ -331,11 +331,12 @@ def object_find(
         if not follow:
             return None
 
-        assert isinstance(obj, VesCommit)
         # Follow tags
         if obj.fmt == b"tag":
+            assert isinstance(obj, VesTag)
             sha = obj.kvlm[b"object"].decode("ascii")
         elif obj.fmt == b"commit" and fmt == b"tree":
+            assert isinstance(obj, VesCommit)
             sha = obj.kvlm[b"tree"].decode("ascii")
         else:
             return None
