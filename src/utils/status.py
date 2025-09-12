@@ -1,11 +1,11 @@
-from typing import Optional
-from src.utils.tree import tree_to_dict
-from src.core.objects import object_hash
-from src.utils.ignore import vesignore_read, check_ignore
-from src.utils.ignore import VesIgnore
-from src.core.repository import VesRepository
-from src.core.index import VesIndex
 import os
+from typing import Optional
+
+from src.core.index import VesIndex
+from src.core.objects import object_hash
+from src.core.repository import VesRepository
+from src.utils.ignore import VesIgnore, check_ignore, vesignore_read
+from src.utils.tree import tree_to_dict
 
 
 def cmd_status_head_index(repo: VesRepository, index: Optional[VesIndex]) -> None:

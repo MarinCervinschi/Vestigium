@@ -1,6 +1,7 @@
 from argparse import Namespace
+
 from src.core.repository import repo_find
-from src.utils.ignore import vesignore_read, check_ignore
+from src.utils.ignore import check_ignore, vesignore_read
 
 
 def cmd_check_ignore(args: Namespace) -> None:

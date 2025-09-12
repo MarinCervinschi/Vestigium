@@ -1,6 +1,7 @@
+from argparse import Namespace
+
 from src.core.objects import object_find
 from src.core.repository import repo_find
-from argparse import Namespace
 
 
 def cmd_rev_parse(args: Namespace) -> None:

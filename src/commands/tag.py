@@ -1,10 +1,9 @@
 from argparse import Namespace
 
 from src.commands.show_ref import show_ref
-from src.core.refs import RefDict, ref_list
-from src.core.repository import repo_find, VesRepository
 from src.core.objects import VesTag, object_find, object_write
-from src.core.refs import ref_create
+from src.core.refs import RefDict, ref_create, ref_list
+from src.core.repository import VesRepository, repo_find
 
 
 def cmd_tag(args: Namespace) -> None:

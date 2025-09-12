@@ -1,8 +1,7 @@
 import os
+from typing import TYPE_CHECKING
 
 from src.core.repository import VesRepository
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from src.core.objects import VesBlob, VesTree

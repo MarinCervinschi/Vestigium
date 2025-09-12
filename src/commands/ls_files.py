@@ -1,7 +1,8 @@
-from argparse import Namespace
-from datetime import datetime
 import grp
 import pwd
+from argparse import Namespace
+from datetime import datetime
+
 from src.core.index import index_read
 from src.core.repository import repo_find
 
