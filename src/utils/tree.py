@@ -1,7 +1,11 @@
 import os
 
-from src.core.objects import VesBlob, VesTree, object_read
 from src.core.repository import VesRepository
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.core.objects import VesBlob, VesTree, object_read
 
 
 class VesTreeLeaf(object):
@@ -114,7 +118,7 @@ def tree_serialize(obj):
     return ret
 
 
-def tree_checkout(repo: VesRepository, tree: VesTree, path: str) -> None:
+def tree_checkout(repo: VesRepository, tree: "VesTree", path: str) -> None:
     """
     Recursively checks out the contents of a VesTree object to the specified filesystem path.
     For each item in the tree:
@@ -136,11 +140,11 @@ def tree_checkout(repo: VesRepository, tree: VesTree, path: str) -> None:
         dest = os.path.join(path, item.path)
 
         if obj.fmt == b"tree":
-            assert isinstance(obj, VesTree)
+            assert isinstance(obj, "VesTree")
             os.mkdir(dest)
             tree_checkout(repo, obj, dest)
         elif obj.fmt == b"blob":
-            assert isinstance(obj, VesBlob)
+            assert isinstance(obj, "VesBlob")
             # @TODO Support symlinks (identified by mode 12****)
             with open(dest, "wb") as f:
                 f.write(obj.blobdata)
