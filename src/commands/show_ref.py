@@ -4,7 +4,7 @@ from src.core.refs import RefDict, ref_list
 from src.core.repository import VesRepository, repo_find
 
 
-def cmd_show_ref() -> None:
+def cmd_show_ref(_) -> None:
     """
     CLI command to display all references in the repository.
 
