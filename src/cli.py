@@ -122,4 +122,7 @@ def get_parser() -> ArgumentParser:
     )
     argsp.add_argument("path", nargs="+", help="Paths to check")
 
+    # status
+    argsp = argsubparsers.add_parser("status", help="Show the working tree status.")
+
     return argparser
