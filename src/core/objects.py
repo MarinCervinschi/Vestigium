@@ -154,7 +154,7 @@ class VesTree(VesObject):
         self.items = list()
 
 
-class VesTag(VesObject):
+class VesTag(VesCommit):
     """
     Represents a tag object in the VCS.
 
@@ -163,16 +163,6 @@ class VesTag(VesObject):
     """
 
     fmt: ClassVar[bytes] = b"tag"
-
-    def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
-        """Serialize tag object to bytes."""
-        # TODO: Implement tag serialization
-        return b""
-
-    def deserialize(self, data: bytes) -> None:
-        """Deserialize bytes into tag object."""
-        # TODO: Implement tag deserialization
-        pass
 
 
 class VesBlob(VesObject):
