@@ -131,4 +131,8 @@ def get_parser() -> ArgumentParser:
     )
     argsp.add_argument("path", nargs="+", help="Files to remove")
 
+    # add
+    argsp = argsubparsers.add_parser("add", help="Add files contents to the index.")
+    argsp.add_argument("path", nargs="+", help="Files to add")
+
     return argparser
