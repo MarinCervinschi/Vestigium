@@ -11,25 +11,43 @@ class VesIndexEntry:
     """
     Represents a single entry in the Vestigium index.
 
-    Each entry contains metadata for a file tracked by the version control system,
-    including timestamps, permissions, SHA hash, and file name.
+    Each entry contains complete metadata for a file tracked by the version control system.
+    This includes filesystem metadata, timestamps, permissions, and the SHA hash of the
+    file content. The index entry format follows the Git index specification.
+
+    Attributes:
+        ctime: Creation time as (seconds_since_epoch, nanoseconds) tuple
+        mtime: Modification time as (seconds_since_epoch, nanoseconds) tuple
+        dev: Device ID of the filesystem containing this file
+        ino: Inode number of the file
+        mode_type: File type bits - 0b1000 (regular file), 0b1010 (symlink), 0b1110 (gitlink)
+        mode_perms: File permission bits (e.g., 0o644 for rw-r--r--)
+        uid: User ID of the file owner
+        gid: Group ID of the file owner
+        fsize: Size of the file in bytes
+        sha: SHA-1 hash of the file content as lowercase hex string (40 characters)
+        flag_assume_valid: When True, Git assumes the file hasn't changed
+        flag_stage: Merge conflict stage (0=normal, 1=base, 2=ours, 3=theirs)
+        name: Relative path of the file from repository root
+
+    Note:
+        All fields are Optional during construction but must be non-None when
+        writing to the index file. Use proper filesystem values for metadata.
     """
 
-    ctime: Optional[Tuple[int, int]] = None  # (timestamp in seconds, nanoseconds)
-    mtime: Optional[Tuple[int, int]] = None  # (timestamp in seconds, nanoseconds)
-    dev: Optional[int] = None  # Device ID containing this file
-    ino: Optional[int] = None  # File's inode number
-    mode_type: Optional[int] = (
-        None  # Object type: b1000 (regular), b1010 (symlink), b1110 (gitlink)
-    )
-    mode_perms: Optional[int] = None  # Object permissions
-    uid: Optional[int] = None  # User ID of owner
-    gid: Optional[int] = None  # Group ID of owner
-    fsize: Optional[int] = None  # Size of this object, in bytes
-    sha: Optional[str] = None  # The object's SHA
-    flag_assume_valid: Optional[bool] = None  # Assume valid flag
-    flag_stage: Optional[int] = None  # Stage flag
-    name: Optional[str] = None  # Name of the object (full path)
+    ctime: Optional[Tuple[int, int]] = None
+    mtime: Optional[Tuple[int, int]] = None
+    dev: Optional[int] = None
+    ino: Optional[int] = None
+    mode_type: Optional[int] = None
+    mode_perms: Optional[int] = None
+    uid: Optional[int] = None
+    gid: Optional[int] = None
+    fsize: Optional[int] = None
+    sha: Optional[str] = None
+    flag_assume_valid: Optional[bool] = None
+    flag_stage: Optional[int] = None
+    name: Optional[str] = None
 
 
 @dataclass
@@ -37,12 +55,33 @@ class VesIndex:
     """
     Represents the Vestigium index containing all tracked file entries.
 
-    The index is the main data structure that maintains the state of files in the
-    working directory and is used to prepare commits.
+    The index is the primary data structure that maintains the state of files in the
+    working directory and serves as the staging area for preparing commits. It contains
+    metadata for all tracked files and is persisted as a binary file in .ves/index.
+
+    The index file format is compatible with Git's index format version 2:
+    - Header: 12 bytes (signature "DIRC", version, entry count)
+    - Entries: Variable-length records with file metadata and names
+    - Padding: Entries are padded to 8-byte boundaries for alignment
 
     Attributes:
-        version: Version of the index format (usually 2)
-        entries: List of VesIndexEntry representing tracked files
+        version: Index format version (should be 2 for compatibility)
+        entries: List of VesIndexEntry objects representing tracked files
+
+    Usage:
+        # Read existing index
+        index = index_read(repo)
+
+        # Add new entry
+        entry = VesIndexEntry(...)
+        index.entries.append(entry)
+
+        # Write back to disk
+        index_write(repo, index)
+
+    Note:
+        The entries list is automatically initialized as empty if None.
+        Entries should be kept sorted by file path for optimal performance.
     """
 
     version: int = 2
@@ -54,24 +93,38 @@ class VesIndex:
             self.entries = []
 
 
-def index_read(repo: VesRepository) -> Optional[VesIndex]:
+def index_read(repo: VesRepository) -> VesIndex:
     """
-    Read the repository index file and return a VesIndex object.
+    Read the repository index file and parse it into a VesIndex object.
 
-    This method reads the binary index file from the repository and parses it
-    to create a VesIndex object containing all tracked file entries.
-    If the index file doesn't exist (new repository), returns an empty VesIndex.
+    This function reads and parses the binary index file from the repository's .ves
+    directory. The index file contains metadata for all tracked files and follows
+    the Git index format version 2 specification.
+
+    The parsing process:
+    1. Reads the 12-byte header (signature, version, entry count)
+    2. Validates the "DIRC" magic signature and version 2 format
+    3. Parses each entry's 62 bytes of fixed metadata plus variable-length name
+    4. Handles name length encoding and null termination
+    5. Applies 8-byte padding alignment between entries
 
     Args:
         repo: The VesRepository instance to read the index from
 
     Returns:
-        A VesIndex object containing entries read from the file, or None
-        if the index file cannot be found or read
+        A VesIndex object containing all parsed entries. Returns an empty
+        VesIndex (with no entries) if the index file doesn't exist, which
+        is normal for new repositories.
 
     Raises:
-        AssertionError: If the file signature is invalid or the version
-                       is not supported
+        AssertionError: If the file has invalid signature (not "DIRC"),
+                       unsupported version (not 2), or malformed entry data
+        OSError: If the index file exists but cannot be read
+        UnicodeDecodeError: If entry names contain invalid UTF-8 sequences
+
+    Note:
+        New repositories without an index file will get an empty VesIndex.
+        This is expected behavior and not an error condition.
     """
     index_file = repo_file(repo, "index")
 
@@ -94,77 +147,55 @@ def index_read(repo: VesRepository) -> Optional[VesIndex]:
     content = raw[12:]
     idx = 0
     for _ in range(count):
-        # Read creation time, as a unix timestamp (seconds since
-        # 1970-01-01 00:00:00, the "epoch")
+        # Creation time
         ctime_s = int.from_bytes(content[idx : idx + 4], "big")
-        # Read creation time, as nanoseconds after that timestamps,
-        # for extra precision.
         ctime_ns = int.from_bytes(content[idx + 4 : idx + 8], "big")
-        # Same for modification time: first seconds from epoch.
+        # Modification time
         mtime_s = int.from_bytes(content[idx + 8 : idx + 12], "big")
-        # Then extra nanoseconds
         mtime_ns = int.from_bytes(content[idx + 12 : idx + 16], "big")
-        # Device ID
+        # Device and inode
         dev = int.from_bytes(content[idx + 16 : idx + 20], "big")
-        # Inode
         ino = int.from_bytes(content[idx + 20 : idx + 24], "big")
-        # Ignored.
+        # Unused field
         unused = int.from_bytes(content[idx + 24 : idx + 26], "big")
         assert 0 == unused
+        # File mode
         mode = int.from_bytes(content[idx + 26 : idx + 28], "big")
         mode_type = mode >> 12
         assert mode_type in [0b1000, 0b1010, 0b1110]
         mode_perms = mode & 0b0000000111111111
-        # User ID
+        # User and group IDs
         uid = int.from_bytes(content[idx + 28 : idx + 32], "big")
-        # Group ID
         gid = int.from_bytes(content[idx + 32 : idx + 36], "big")
-        # Size
+        # File size and SHA
         fsize = int.from_bytes(content[idx + 36 : idx + 40], "big")
-        # SHA (object ID).  We'll store it as a lowercase hex string
-        # for consistency.
         sha = format(int.from_bytes(content[idx + 40 : idx + 60], "big"), "040x")
-        # Flags we're going to ignore
-        flags = int.from_bytes(content[idx + 60 : idx + 62], "big")
         # Parse flags
+        flags = int.from_bytes(content[idx + 60 : idx + 62], "big")
         flag_assume_valid = (flags & 0b1000000000000000) != 0
         flag_extended = (flags & 0b0100000000000000) != 0
         assert not flag_extended
         flag_stage = flags & 0b0011000000000000
-        # Length of the name.  This is stored on 12 bits, some max
-        # value is 0xFFF, 4095.  Since names can occasionally go
-        # beyond that length, git treats 0xFFF as meaning at least
-        # 0xFFF, and looks for the final 0x00 to find the end of the
-        # name --- at a small, and probably very rare, performance
-        # cost.
         name_length = flags & 0b0000111111111111
 
-        # We've read 62 bytes so far.
         idx += 62
 
+        # Handle file name
         if name_length < 0xFFF:
             assert content[idx + name_length] == 0x00
             raw_name = content[idx : idx + name_length]
             idx += name_length + 1
         else:
             print(f"Notice: Name is 0x{name_length:X} bytes long.")
-            # This probably wasn't tested enough.  It works with a
-            # path of exactly 0xFFF bytes.  Any extra bytes broke
-            # something between git, my shell and my filesystem.
             null_idx = content.find(b"\x00", idx + 0xFFF)
             raw_name = content[idx:null_idx]
             idx = null_idx + 1
 
-        # Just parse the name as utf8.
         name = raw_name.decode("utf8")
 
-        # Data is padded on multiples of eight bytes for pointer
-        # alignment, so we skip as many bytes as we need for the next
-        # read to start at the right position.
-
+        # Apply 8-byte padding alignment
         idx = 8 * ceil(idx / 8)
 
-        # And we add this entry to our list.
         entries.append(
             VesIndexEntry(
                 ctime=(ctime_s, ctime_ns),
@@ -184,3 +215,108 @@ def index_read(repo: VesRepository) -> Optional[VesIndex]:
         )
 
     return VesIndex(version=version, entries=entries)
+
+
+def index_write(repo: VesRepository, index: VesIndex) -> None:
+    """
+    Write a VesIndex object to the repository's index file.
+
+    This function serializes the index data structure to the binary index file format
+    used by Vestigium. The index file contains metadata for all tracked files and is
+    essential for staging operations and preparing commits.
+
+    The index file format follows this structure:
+    - Header (12 bytes): Magic signature "DIRC", version (4 bytes), entry count (4 bytes)
+    - Entries: Variable-length entries for each tracked file containing:
+      * Timestamps (creation and modification time)
+      * File system metadata (device, inode, mode, uid, gid, size)
+      * SHA hash of the file content
+      * Flags and file name
+      * Padding to align entries on 8-byte boundaries
+
+    Args:
+        repo: The VesRepository instance to write the index to
+        index: The VesIndex object containing entries to write
+
+    Raises:
+        Exception: If the index file cannot be determined for the repository
+        ValueError: If any required entry fields are None
+        OSError: If the index file cannot be written
+
+    Note:
+        This function will overwrite any existing index file. All entries must
+        have their required fields populated (non-None values).
+    """
+    index_file = repo_file(repo, "index")
+    if index_file is None:
+        raise Exception("No index file in this repository.")
+
+    # Ensure entries list is not None
+    if index.entries is None:
+        index.entries = []
+
+    with open(index_file, "wb") as f:
+
+        # HEADER
+        f.write(b"DIRC")
+        f.write(index.version.to_bytes(4, "big"))
+        f.write(len(index.entries).to_bytes(4, "big"))
+
+        # ENTRIES
+        idx = 0
+        for e in index.entries:
+            # Validate required fields
+            if (
+                e.ctime is None
+                or e.mtime is None
+                or e.dev is None
+                or e.ino is None
+                or e.mode_type is None
+                or e.mode_perms is None
+                or e.uid is None
+                or e.gid is None
+                or e.fsize is None
+                or e.sha is None
+                or e.flag_stage is None
+                or e.name is None
+            ):
+                raise ValueError(
+                    f"Entry '{e.name}' has None values for required fields"
+                )
+
+            # Write timestamps
+            f.write(e.ctime[0].to_bytes(4, "big"))
+            f.write(e.ctime[1].to_bytes(4, "big"))
+            f.write(e.mtime[0].to_bytes(4, "big"))
+            f.write(e.mtime[1].to_bytes(4, "big"))
+            # Write filesystem metadata
+            f.write(e.dev.to_bytes(4, "big"))
+            f.write(e.ino.to_bytes(4, "big"))
+            f.write((0).to_bytes(2, "big"))  # unused field
+            # Write file mode
+            mode = (e.mode_type << 12) | e.mode_perms
+            f.write(mode.to_bytes(2, "big"))
+            # Write user/group IDs and file size
+            f.write(e.uid.to_bytes(4, "big"))
+            f.write(e.gid.to_bytes(4, "big"))
+            f.write(e.fsize.to_bytes(4, "big"))
+            # Write SHA hash
+            f.write(int(e.sha, 16).to_bytes(20, "big"))
+
+            # Prepare flags and name
+            flag_assume_valid = 0x1 << 15 if e.flag_assume_valid else 0
+            name_bytes = e.name.encode("utf8")
+            bytes_len = len(name_bytes)
+            name_length = 0xFFF if bytes_len >= 0xFFF else bytes_len
+
+            # Write flags and name
+            f.write((flag_assume_valid | e.flag_stage | name_length).to_bytes(2, "big"))
+            f.write(name_bytes)
+            f.write((0).to_bytes(1, "big"))
+
+            # Update counter and apply padding
+            idx += 62 + len(name_bytes) + 1
+            if idx % 8 != 0:
+                pad = 8 - (idx % 8)
+                f.write((0).to_bytes(pad, "big"))
+                idx += pad
