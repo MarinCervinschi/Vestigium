@@ -81,7 +81,7 @@ def commit_create(
 
     This function builds a commit object by combining tree reference, parent commit,
     author information, timestamp, and commit message. It formats the data according
-    to the Git commit object specification and writes it to the repository.
+    to the Ves commit object specification and writes it to the repository.
 
     The commit object contains:
     - Tree reference (SHA of the root tree)

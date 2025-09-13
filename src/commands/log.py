@@ -22,7 +22,7 @@ def cmd_log(args: Namespace) -> None:
         - Directed edges showing parent-child relationships
 
     Example output:
-        digraph wyaglog{
+        digraph veslog{
           node[shape=rect]
           c_abc123f [label="abc123f: Initial commit"]
           c_def456a [label="def456a: Add feature"]
@@ -33,7 +33,7 @@ def cmd_log(args: Namespace) -> None:
     if repo is None:
         return
 
-    print("digraph wyaglog{")
+    print("digraph veslog{")
     print("  node[shape=rect]")
     sha = object_find(repo, args.commit)
     if sha is None:

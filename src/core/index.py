@@ -13,7 +13,7 @@ class VesIndexEntry:
 
     Each entry contains complete metadata for a file tracked by the version control system.
     This includes filesystem metadata, timestamps, permissions, and the SHA hash of the
-    file content. The index entry format follows the Git index specification.
+    file content. The index entry format follows the Ves index specification.
 
     Attributes:
         ctime: Creation time as (seconds_since_epoch, nanoseconds) tuple
@@ -26,7 +26,7 @@ class VesIndexEntry:
         gid: Group ID of the file owner
         fsize: Size of the file in bytes
         sha: SHA-1 hash of the file content as lowercase hex string (40 characters)
-        flag_assume_valid: When True, Git assumes the file hasn't changed
+        flag_assume_valid: When True, Ves assumes the file hasn't changed
         flag_stage: Merge conflict stage (0=normal, 1=base, 2=ours, 3=theirs)
         name: Relative path of the file from repository root
 
@@ -59,7 +59,7 @@ class VesIndex:
     working directory and serves as the staging area for preparing commits. It contains
     metadata for all tracked files and is persisted as a binary file in .ves/index.
 
-    The index file format is compatible with Git's index format version 2:
+    The index file format is compatible with Ves's index format version 2:
     - Header: 12 bytes (signature "DIRC", version, entry count)
     - Entries: Variable-length records with file metadata and names
     - Padding: Entries are padded to 8-byte boundaries for alignment
@@ -99,7 +99,7 @@ def index_read(repo: VesRepository) -> VesIndex:
 
     This function reads and parses the binary index file from the repository's .ves
     directory. The index file contains metadata for all tracked files and follows
-    the Git index format version 2 specification.
+    the Ves index format version 2 specification.
 
     The parsing process:
     1. Reads the 12-byte header (signature, version, entry count)

@@ -188,7 +188,7 @@ class TestHashObjectCommand:
             cmd_hash_object(args)
 
     def test_hash_object_consistency_with_git(self, temp_dir, clean_env, capsys):
-        """Test that our hash matches expected Git behavior for known content."""
+        """Test that our hash matches expected Ves behavior for known content."""
         os.chdir(temp_dir)
 
         test_file = Path(temp_dir) / "hello.txt"
@@ -201,8 +201,8 @@ class TestHashObjectCommand:
         captured = capsys.readouterr()
         hash_output = captured.out.strip()
 
-        # This should match Git's hash for "hello world\n" as a blob
-        # Git: echo "hello world" | git hash-object --stdin
+        # This should match Ves's hash for "hello world\n" as a blob
+        # Ves: echo "hello world" | git hash-object --stdin
         # Expected: 3b18e512dba79e4c8300dd08aeb37f8e728b8dad
         expected_hash = "3b18e512dba79e4c8300dd08aeb37f8e728b8dad"
         assert hash_output == expected_hash

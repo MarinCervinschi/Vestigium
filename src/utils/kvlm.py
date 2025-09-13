@@ -3,7 +3,7 @@ from typing import Optional
 
 def kvlm_parse(raw: bytes, start: int = 0, dct: Optional[dict] = None) -> dict:
     """
-    Parse KVLM (Key-Value List with Message) format used in Git objects.
+    Parse KVLM (Key-Value List with Message) format used in Ves objects.
 
     The KVLM format consists of:
     - Key-value pairs separated by spaces
@@ -71,7 +71,7 @@ def kvlm_serialize(kvlm: dict) -> bytes:
     Serialize a KVLM dictionary back to bytes format.
 
     Converts a dictionary containing key-value pairs and a message back to the
-    KVLM (Key-Value List with Message) format used in Git objects. This is the
+    KVLM (Key-Value List with Message) format used in Ves objects. This is the
     inverse operation of kvlm_parse().
 
     Args:
