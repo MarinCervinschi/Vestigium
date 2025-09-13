@@ -2,10 +2,10 @@ import os
 from typing import TYPE_CHECKING
 
 from src.core.repository import VesRepository
+from src.core.index import VesIndexEntry, VesIndex
 
 if TYPE_CHECKING:
     from src.core.objects import VesBlob, VesTree
-    from src.core.index import VesIndexEntry, VesIndex
 
 
 class VesTreeLeaf(object):
