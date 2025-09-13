@@ -5,7 +5,7 @@ from src.core.repository import VesRepository
 from src.core.index import VesIndexEntry, VesIndex
 
 if TYPE_CHECKING:
-    from src.core.objects import VesBlob, VesTree
+    from src.core.objects import VesTree
 
 
 class VesTreeLeaf(object):
@@ -133,6 +133,7 @@ def tree_checkout(repo: VesRepository, tree: "VesTree", path: str) -> None:
         Exception: If an object cannot be read from the repository.
     """
     from src.core.objects import object_read
+    from src.core.objects import VesTree, VesBlob
 
     for item in tree.items:
         obj = object_read(repo, item.sha)
@@ -141,11 +142,11 @@ def tree_checkout(repo: VesRepository, tree: "VesTree", path: str) -> None:
         dest = os.path.join(path, item.path)
 
         if obj.fmt == b"tree":
-            assert isinstance(obj, "VesTree")
+            assert isinstance(obj, VesTree)
             os.mkdir(dest)
             tree_checkout(repo, obj, dest)
         elif obj.fmt == b"blob":
-            assert isinstance(obj, "VesBlob")
+            assert isinstance(obj, VesBlob)
             # @TODO Support symlinks (identified by mode 12****)
             with open(dest, "wb") as f:
                 f.write(obj.blobdata)
@@ -177,6 +178,7 @@ def tree_to_dict(repo: VesRepository, ref: str, prefix: str = "") -> dict[str, s
         the hierarchical tree structure into a simple path->hash mapping.
     """
     from src.core.objects import object_find, object_read
+    from src.core.objects import VesTree
 
     ret = dict()
     tree_sha = object_find(repo, ref, fmt=b"tree")
@@ -186,7 +188,7 @@ def tree_to_dict(repo: VesRepository, ref: str, prefix: str = "") -> dict[str, s
     if tree is None:
         return ret
 
-    assert isinstance(tree, "VesTree")
+    assert isinstance(tree, VesTree)
     for leaf in tree.items:
         full_path = os.path.join(prefix, leaf.path)
 
