@@ -5,6 +5,7 @@ from src.core.repository import VesRepository
 
 if TYPE_CHECKING:
     from src.core.objects import VesBlob, VesTree
+    from src.core.index import VesIndexEntry, VesIndex
 
 
 class VesTreeLeaf(object):
@@ -202,3 +203,99 @@ def tree_to_dict(repo: VesRepository, ref: str, prefix: str = "") -> dict[str, s
         else:
             ret[full_path] = leaf.sha
     return ret
+
+
+def tree_from_index(repo: VesRepository, index: VesIndex) -> str:
+    """
+    Create a tree object from the current index state.
+
+    This function converts the index (staging area) into a hierarchical tree structure
+    suitable for creating commits. It processes all index entries, organizes them by
+    directory structure, and creates tree objects for each directory level.
+
+    The algorithm works bottom-up:
+    1. Groups index entries by their directory paths
+    2. Creates all directory entries up to the root
+    3. Processes directories from deepest to shallowest
+    4. For each directory, creates a tree object containing files and subdirectories
+    5. Writes tree objects to the repository store
+    6. Returns the SHA hash of the root tree
+
+    Args:
+        repo: The VesRepository instance to write tree objects to
+        index: The VesIndex containing staged file entries
+
+    Returns:
+        The SHA-1 hash of the root tree object as a hex string
+
+    Raises:
+        AttributeError: If index entries contain invalid data (None names or SHAs)
+        OSError: If tree objects cannot be written to the repository
+        ValueError: If index has no entries or is empty
+
+    Note:
+        This function is typically called during commit creation to capture
+        the current staged state as a tree structure.
+    """
+    from src.core.objects import object_write, VesTree
+
+    if index.entries is None:
+        raise ValueError("Index has no entries")
+
+    contents = dict()
+    contents[""] = list()
+
+    # Group entries by directory path
+    for entry in index.entries:
+        if entry.name is None:
+            continue  # Skip invalid entries
+        dirname = os.path.dirname(entry.name)
+
+        # Create all directory entries up to root
+        key = dirname
+        while key != "":
+            if not key in contents:
+                contents[key] = list()
+            key = os.path.dirname(key)
+
+        contents[dirname].append(entry)
+
+    # Process directories from deepest to shallowest
+    sorted_paths = sorted(contents.keys(), key=len, reverse=True)
+
+    sha = None
+
+    for path in sorted_paths:
+        tree = VesTree()
+
+        # Create tree entries for current directory
+        for entry in contents[path]:
+            if isinstance(entry, VesIndexEntry):
+                # Handle regular file entry
+                if entry.name is None or entry.sha is None:
+                    continue  # Skip invalid entries
+
+                leaf_mode = f"{entry.mode_type:02o}{entry.mode_perms:04o}".encode(
+                    "ascii"
+                )
+                leaf = VesTreeLeaf(
+                    mode=leaf_mode, path=os.path.basename(entry.name), sha=entry.sha
+                )
+            else:
+                # Handle subdirectory (stored as (basename, SHA) tuple)
+                leaf = VesTreeLeaf(mode=b"040000", path=entry[0], sha=entry[1])
+
+            tree.items.append(leaf)
+
+        # Write tree object and get its SHA
+        sha = object_write(tree, repo)
+
+        # Add tree to parent directory
+        parent = os.path.dirname(path)
+        base = os.path.basename(path)
+        contents[parent].append((base, sha))
+
+    if sha is None:
+        raise ValueError("Failed to create tree: no entries processed")
+
+    return sha
