@@ -135,4 +135,13 @@ def get_parser() -> ArgumentParser:
     argsp = argsubparsers.add_parser("add", help="Add files contents to the index.")
     argsp.add_argument("path", nargs="+", help="Files to add")
 
+    # commit
+    argsp = argsubparsers.add_parser("commit", help="Record changes to the repository.")
+    argsp.add_argument(
+        "-m",
+        metavar="message",
+        dest="message",
+        help="Message to associate with this commit.",
+    )
+
     return argparser
