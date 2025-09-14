@@ -83,6 +83,7 @@ def parse_line(raw: str) -> Optional[Tuple[str, bool]]:
     - Lines starting with '!' are negation rules (exclude from ignore)
     - Lines starting with '\\' escape the next character
     - All other lines are standard ignore patterns
+    - Inline comments (after #) are removed from patterns
 
     Args:
         raw: A single line from an ignore file
@@ -95,6 +96,16 @@ def parse_line(raw: str) -> Optional[Tuple[str, bool]]:
     raw = raw.strip()
 
     if not raw or raw[0] == "#":
+        return None
+
+    # Remove inline comments (but not if # is escaped)
+    comment_pos = raw.find("#")
+    if comment_pos != -1:
+        # Check if the # is escaped
+        if comment_pos == 0 or raw[comment_pos - 1] != "\\":
+            raw = raw[:comment_pos].strip()
+
+    if not raw:
         return None
     elif raw[0] == "!":
         return (raw[1:], False)
@@ -144,8 +155,31 @@ def check_ignore1(rules: List[Tuple[str, bool]], path: str) -> Optional[bool]:
     """
     result = None
     for pattern, value in rules:
-        if fnmatch(path, pattern):
-            result = value
+        if pattern.endswith("/"):
+            dir_pattern = pattern[:-1]  # Remove trailing slash
+
+            # Handle ** globstar patterns
+            if "**" in dir_pattern:
+                if dir_pattern.startswith("**/"):
+                    target_dir = dir_pattern[3:]  # Remove **/
+                    path_parts = path.split("/")
+                    for i, part in enumerate(path_parts):
+                        if part == target_dir:
+                            if i < len(path_parts) - 1:  # Not the last part
+                                result = value
+                                break
+                elif dir_pattern.endswith("/**"):
+                    target_dir = dir_pattern[:-3]  # Remove /**
+                    if path.startswith(target_dir + "/"):
+                        result = value
+            else:
+                # Simple directory pattern
+                if path.startswith(dir_pattern + "/") or path == dir_pattern:
+                    result = value
+        else:
+            # Regular pattern matching
+            if fnmatch(path, pattern):
+                result = value
     return result
 
 
@@ -170,7 +204,12 @@ def check_ignore_scoped(
     parent = os.path.dirname(path)
     while True:
         if parent in rules:
-            result = check_ignore1(rules[parent], path)
+            # Calculate relative path from the parent directory
+            if parent == "":
+                relative_path = path
+            else:
+                relative_path = os.path.relpath(path, parent)
+            result = check_ignore1(rules[parent], relative_path)
             if result != None:
                 return result
         if parent == "":
