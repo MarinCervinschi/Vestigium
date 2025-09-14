@@ -184,6 +184,8 @@ ves log abc123             # History from specific commit
 ves log | dot -Tpng > history.png  # Generate image
 ```
 
+>**Notes**: Or paste the output into [GraphvizOnline](https://dreampuf.github.io/GraphvizOnline) to visualize directly.
+
 ### `checkout` - Extract Commit
 
 **Purpose**: Extracts all files from a commit/tree to a directory.
