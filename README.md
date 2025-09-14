@@ -1,4 +1,4 @@
-# Vestigium
+# Vestigium 🫆🌳
 
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen.svg)](https://pre-commit.com/)
 [![CI Tests](https://github.com/MarinCervinschi/Vestigium/actions/workflows/ci.yml/badge.svg)](https://github.com/MarinCervinschi/Vestigium/actions/workflows/ci.yml)
@@ -54,19 +54,32 @@ docker compose run --rm vestigium-dev
 
 ### Available Commands
 
-Currently implemented:
+For detailed usage and examples of all commands, see [COMMANDS.md](docs/COMMANDS.md).
 
-- `init [path]`: Initialize a new repository (default: current directory)
-- `hash-object [-t <type>] [-w] <path>`: Hash a file and store it as an object
-- `cat-file <type> <object>`: Display the content of an object
+**Basic Commands:**
+- `init` - Initialize a new repository
+- `add` - Add files to staging area
+- `commit` - Record changes to repository
+- `status` - Show working tree status
+- `checkout` - Extract commit to directory
 
-Coming soon:
+**Object Management:**
+- `hash-object` - Calculate and store file hash
+- `cat-file` - Display object content
 
-- `add`: Add files to staging
-- `commit`: Record changes
-- `status`: Show working tree status
-- `log`: Show commit history
-- And more...
+**Navigation & History:**
+- `log` - Show commit history
+- `ls-files` - List files in index
+- `ls-tree` - List tree contents
+
+**References & Tags:**
+- `tag` - Create and list tags
+- `show-ref` - Show all references
+- `rev-parse` - Resolve identifiers
+
+**Utilities:**
+- `rm` - Remove files from index
+- `check-ignore` - Verify ignore rules
 
 ## Development
 
