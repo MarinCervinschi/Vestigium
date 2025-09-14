@@ -5,7 +5,9 @@
 [![codecov](https://codecov.io/gh/MarinCervinschi/Vestigium/branch/main/graph/badge.svg)](https://codecov.io/gh/MarinCervinschi/Vestigium)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
-<img src="assets/vestigium_logo.png" alt="Vestigium Logo" width="400"/>
+<p align="center">
+    <img src="assets/vestigium_logo.png" alt="Vestigium Logo" width="400" />
+</p>
 
 A simple Version Control System (VCS) built in Python for educational purposes. I created this project to understand and replicate the core local mechanisms of Git.
 
