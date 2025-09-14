@@ -19,7 +19,7 @@ class TestRmCommand:
         os.chdir(temp_dir)
 
         args = Namespace(path=["test.txt"])
-        
+
         with pytest.raises(Exception, match="No ves directory."):
             cmd_rm(args)
 
@@ -109,7 +109,9 @@ class TestRmCommand:
 
         # Create and add multiple files
         all_files = []
-        for i, name in enumerate(["keep1.txt", "remove1.txt", "keep2.txt", "remove2.txt"]):
+        for i, name in enumerate(
+            ["keep1.txt", "remove1.txt", "keep2.txt", "remove2.txt"]
+        ):
             test_file = repo_path / name
             test_file.write_bytes(f"Content of {name}".encode())
             all_files.append(str(test_file))
@@ -157,7 +159,7 @@ class TestRmCommand:
 
         # Try to remove the untracked file
         rm_args = Namespace(path=[str(untracked_file)])
-        
+
         with pytest.raises(Exception, match="Cannot remove paths not in the index"):
             cmd_rm(rm_args)
 
@@ -180,7 +182,7 @@ class TestRmCommand:
 
         # Try to remove the file outside worktree
         rm_args = Namespace(path=[str(outside_file)])
-        
+
         with pytest.raises(Exception, match="Cannot remove paths outside of worktree"):
             cmd_rm(rm_args)
 
@@ -332,7 +334,7 @@ class TestRmCommand:
 
         # Try to remove from empty index
         rm_args = Namespace(path=[str(test_file)])
-        
+
         with pytest.raises(Exception, match="Cannot remove paths not in the index"):
             cmd_rm(rm_args)
 
@@ -349,7 +351,7 @@ class TestRmCommand:
         # Try to remove a nonexistent file
         nonexistent_path = str(repo_path / "does_not_exist.txt")
         rm_args = Namespace(path=[nonexistent_path])
-        
+
         with pytest.raises(Exception, match="Cannot remove paths not in the index"):
             cmd_rm(rm_args)
 
@@ -382,6 +384,6 @@ class TestRmCommand:
         index = index_read(repo)
         assert index is not None
         assert len(index.entries) == 3
-        
+
         remaining_names = [entry.name for entry in index.entries]
         assert remaining_names == ["a.txt", "c.txt", "d.txt"]

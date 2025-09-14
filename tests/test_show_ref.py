@@ -18,7 +18,7 @@ class TestShowRefCommand:
         os.chdir(temp_dir)
 
         args = Namespace()
-        
+
         with pytest.raises(Exception, match="No ves directory."):
             cmd_show_ref(args)
 
@@ -42,14 +42,14 @@ class TestShowRefCommand:
         # New repository might have no refs or only have basic structure
         # Should not crash and output should be well-formed
         if output:
-            lines = output.strip().split('\n')
+            lines = output.strip().split("\n")
             for line in lines:
                 # Each line should have format: "{sha} refs/{path}"
-                parts = line.split(' ', 1)
+                parts = line.split(" ", 1)
                 assert len(parts) == 2
                 sha, ref_path = parts
                 assert len(sha) == 40  # Valid SHA
-                assert ref_path.startswith('refs/')
+                assert ref_path.startswith("refs/")
 
     def test_show_ref_with_created_branch(self, temp_dir, clean_env, capsys):
         """Test show-ref with manually created branch reference."""
@@ -114,7 +114,9 @@ class TestShowRefCommand:
         assert "refs/heads/develop" in output
         assert "refs/tags/v1.0" in output
 
-    def test_show_ref_with_multiple_branches_and_tags(self, temp_dir, clean_env, capsys):
+    def test_show_ref_with_multiple_branches_and_tags(
+        self, temp_dir, clean_env, capsys
+    ):
         """Test show-ref with multiple local branches and tags."""
         os.chdir(temp_dir)
 
@@ -133,7 +135,7 @@ class TestShowRefCommand:
         tag_sha = "d" * 40
 
         ref_create(repo, "heads/master", master_sha)
-        ref_create(repo, "heads/develop", develop_sha) 
+        ref_create(repo, "heads/develop", develop_sha)
         ref_create(repo, "heads/feature", feature_sha)  # Simplified from nested path
         ref_create(repo, "tags/v1.0", tag_sha)
 
@@ -169,11 +171,11 @@ class TestShowRefCommand:
         # Test with a branch name that looks nested but is treated as a single name
         # This tests the system's handling of branch names with slashes
         nested_sha = "f" * 40
-        
+
         # Create the nested directory structure manually first
         nested_dir = repo_path / ".ves" / "refs" / "heads" / "feature" / "user-auth"
         nested_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Then create the ref file
         ref_file = nested_dir / "login-system"
         ref_file.write_text(nested_sha + "\n")
@@ -266,13 +268,13 @@ class TestShowRefCommand:
 
         captured = capsys.readouterr()
         output = captured.out
-        lines = output.strip().split('\n')
+        lines = output.strip().split("\n")
 
         # Extract just the reference names for sorting check
         ref_names = []
         for line in lines:
             if line:
-                parts = line.split(' ', 1)
+                parts = line.split(" ", 1)
                 if len(parts) == 2:
                     ref_names.append(parts[1])
 
@@ -325,6 +327,7 @@ class TestShowRefCommand:
         refs_dir = repo_path / ".ves" / "refs"
         if refs_dir.exists():
             import shutil
+
             for item in refs_dir.iterdir():
                 if item.is_dir():
                     shutil.rmtree(item)
@@ -431,17 +434,19 @@ class TestShowRefCommand:
         output = captured.out.strip()
 
         if output:
-            lines = output.split('\n')
+            lines = output.split("\n")
             for line in lines:
                 # Each line should match format: "{40-char-sha} refs/{path}"
-                parts = line.split(' ', 1)
+                parts = line.split(" ", 1)
                 assert len(parts) == 2
                 sha, ref_path = parts
-                
+
                 # Validate SHA format
                 assert len(sha) == 40
                 assert all(c in "0123456789abcdef" for c in sha.lower())
-                
+
                 # Validate ref path format
                 assert ref_path.startswith("refs/")
-                assert "/" in ref_path[5:]  # Should have at least refs/{category}/{name}
+                assert (
+                    "/" in ref_path[5:]
+                )  # Should have at least refs/{category}/{name}

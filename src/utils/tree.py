@@ -1,8 +1,8 @@
 import os
 from typing import TYPE_CHECKING
 
+from src.core.index import VesIndex, VesIndexEntry
 from src.core.repository import VesRepository
-from src.core.index import VesIndexEntry, VesIndex
 
 if TYPE_CHECKING:
     from src.core.objects import VesTree
@@ -132,8 +132,7 @@ def tree_checkout(repo: VesRepository, tree: "VesTree", path: str) -> None:
     Raises:
         Exception: If an object cannot be read from the repository.
     """
-    from src.core.objects import object_read
-    from src.core.objects import VesTree, VesBlob
+    from src.core.objects import VesBlob, VesTree, object_read
 
     for item in tree.items:
         obj = object_read(repo, item.sha)
@@ -177,8 +176,7 @@ def tree_to_dict(repo: VesRepository, ref: str, prefix: str = "") -> dict[str, s
         This function is useful for comparing tree states, as it flattens
         the hierarchical tree structure into a simple path->hash mapping.
     """
-    from src.core.objects import object_find, object_read
-    from src.core.objects import VesTree
+    from src.core.objects import VesTree, object_find, object_read
 
     ret = dict()
     tree_sha = object_find(repo, ref, fmt=b"tree")
@@ -239,7 +237,7 @@ def tree_from_index(repo: VesRepository, index: VesIndex) -> str:
         This function is typically called during commit creation to capture
         the current staged state as a tree structure.
     """
-    from src.core.objects import object_write, VesTree
+    from src.core.objects import VesTree, object_write
 
     contents = dict()
     contents[""] = list()

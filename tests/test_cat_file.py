@@ -167,23 +167,23 @@ class TestCatFileCommand:
         assert obj.serialize() == large_content
 
     def test_cat_file_different_types_accepted(self, temp_dir, clean_env):
-       """Test that cat-file accepts different object type parameters."""
-       os.chdir(temp_dir)
+        """Test that cat-file accepts different object type parameters."""
+        os.chdir(temp_dir)
 
-       repo_path = Path(temp_dir) / "test_repo"
-       init_args = Namespace(path=str(repo_path))
-       cmd_init(init_args)
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
 
-       os.chdir(repo_path)
-       repo = repo_find()
-       assert repo is not None
+        os.chdir(repo_path)
+        repo = repo_find()
+        assert repo is not None
 
-       test_content = b"test content"
-       blob = VesBlob(test_content)
-       blob_hash = object_write(blob, repo)
+        test_content = b"test content"
+        blob = VesBlob(test_content)
+        blob_hash = object_write(blob, repo)
 
-       # Test with different type specifications (should all work for blob objects)
-       for obj_type in ["blob", "tree", "commit", "tag"]:
-           args = Namespace(object=blob_hash, type=obj_type)
-           # Should not crash regardless of type specified
-           cmd_cat_file(args)
+        # Test with different type specifications (should all work for blob objects)
+        for obj_type in ["blob", "tree", "commit", "tag"]:
+            args = Namespace(object=blob_hash, type=obj_type)
+            # Should not crash regardless of type specified
+            cmd_cat_file(args)

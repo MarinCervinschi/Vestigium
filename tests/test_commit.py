@@ -1,17 +1,17 @@
 import os
 from argparse import Namespace
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import pytest
 
+from src.commands.add import cmd_add
 from src.commands.commit import cmd_commit, commit_create
 from src.commands.init import cmd_init
-from src.commands.add import cmd_add
 from src.core.index import index_read
+from src.core.objects import VesCommit, object_read
 from src.core.refs import ref_resolve
 from src.core.repository import repo_find
-from src.core.objects import object_read, VesCommit
 
 
 class TestCommitCommand:

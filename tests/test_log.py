@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from src.commands.log import cmd_log, log_graphviz
-from src.commands.init import cmd_init
 from src.commands.add import cmd_add
 from src.commands.commit import cmd_commit
+from src.commands.init import cmd_init
+from src.commands.log import cmd_log, log_graphviz
 from src.core.refs import ref_resolve
 from src.core.repository import repo_find
 
@@ -28,10 +28,10 @@ class TestLogCommand:
         # Create and add a file
         test_file = repo_path / "test.txt"
         test_file.write_text("Hello, World!")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Initial commit")
         cmd_commit(commit_args)
 
@@ -47,7 +47,7 @@ class TestLogCommand:
         # Verify output
         captured = capsys.readouterr()
         output = captured.out
-        
+
         assert "digraph veslog{" in output
         assert "node[shape=rect]" in output
         assert f"c_{commit_sha}" in output
@@ -67,10 +67,10 @@ class TestLogCommand:
         # Create first commit
         test_file1 = repo_path / "file1.txt"
         test_file1.write_text("First file")
-        
+
         add_args1 = Namespace(path=["file1.txt"])
         cmd_add(add_args1)
-        
+
         commit_args1 = Namespace(message="First commit")
         cmd_commit(commit_args1)
 
@@ -81,10 +81,10 @@ class TestLogCommand:
         # Create second commit
         test_file2 = repo_path / "file2.txt"
         test_file2.write_text("Second file")
-        
+
         add_args2 = Namespace(path=["file2.txt"])
         cmd_add(add_args2)
-        
+
         commit_args2 = Namespace(message="Second commit")
         cmd_commit(commit_args2)
 
@@ -97,7 +97,7 @@ class TestLogCommand:
         # Verify output contains both commits and relationship
         captured = capsys.readouterr()
         output = captured.out
-        
+
         assert "digraph veslog{" in output
         assert f"c_{first_commit_sha}" in output
         assert f"c_{second_commit_sha}" in output
@@ -118,10 +118,10 @@ class TestLogCommand:
         # Create and add a file
         test_file = repo_path / "test.txt"
         test_file.write_text("HEAD test")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="HEAD commit test")
         cmd_commit(commit_args)
 
@@ -132,7 +132,7 @@ class TestLogCommand:
         # Verify output
         captured = capsys.readouterr()
         output = captured.out
-        
+
         assert "digraph veslog{" in output
         assert "HEAD commit test" in output
 
@@ -149,7 +149,7 @@ class TestLogCommand:
         # Create and add a file
         test_file = repo_path / "test.txt"
         test_file.write_text("Multiline test")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
 
@@ -169,7 +169,7 @@ class TestLogCommand:
         # Verify only first line is shown
         captured = capsys.readouterr()
         output = captured.out
-        
+
         assert "Short summary" in output
         assert "Longer description" not in output
         assert "with multiple lines" not in output
@@ -187,7 +187,7 @@ class TestLogCommand:
         # Create and add a file
         test_file = repo_path / "test.txt"
         test_file.write_text("Escape test")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
 
@@ -207,10 +207,10 @@ class TestLogCommand:
         # Verify special characters are escaped
         captured = capsys.readouterr()
         output = captured.out
-        
+
         # Should contain escaped versions
         assert '\\"quoted\\"' in output
-        assert '\\\\backslashes' in output
+        assert "\\\\backslashes" in output
 
     def test_log_invalid_commit(self, temp_dir, clean_env, capsys):
         """Test log behavior with invalid commit reference."""
@@ -250,10 +250,10 @@ class TestLogCommand:
         # Create and add a file
         test_file = repo_path / "test.txt"
         test_file.write_text("Direct test")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Direct log test")
         cmd_commit(commit_args)
 
@@ -269,7 +269,7 @@ class TestLogCommand:
         # Verify output
         captured = capsys.readouterr()
         output = captured.out
-        
+
         assert f"c_{commit_sha}" in output
         assert "Direct log test" in output
         assert commit_sha in seen
@@ -287,10 +287,10 @@ class TestLogCommand:
         # Create and add a file
         test_file = repo_path / "test.txt"
         test_file.write_text("SHA test")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="SHA format test")
         cmd_commit(commit_args)
 
@@ -306,7 +306,7 @@ class TestLogCommand:
         # Verify short SHA is used in labels
         captured = capsys.readouterr()
         output = captured.out
-        
+
         short_sha = commit_sha[:7]
         assert f"{short_sha}:" in output
         # But full SHA should be used for node names
@@ -329,7 +329,7 @@ class TestLogCommand:
         # Should produce minimal output
         captured = capsys.readouterr()
         output = captured.out
-        
+
         assert "digraph veslog{" in output
         assert "node[shape=rect]" in output
         assert "}" in output
@@ -349,10 +349,10 @@ class TestLogCommand:
         # Create and add a file
         test_file = repo_path / "test.txt"
         test_file.write_text("Cycle test")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Cycle test commit")
         cmd_commit(commit_args)
 
@@ -364,15 +364,15 @@ class TestLogCommand:
         # Call log_graphviz multiple times with same seen set
         seen = set()
         log_graphviz(repo, commit_sha, seen)
-        
+
         # Clear captured output
         capsys.readouterr()
-        
+
         # Call again - should not produce output since SHA is in seen
         log_graphviz(repo, commit_sha, seen)
-        
+
         captured = capsys.readouterr()
         output = captured.out
-        
+
         # Should be empty since commit was already processed
         assert output.strip() == ""

@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from src.commands.checkout import cmd_checkout
-from src.commands.init import cmd_init
 from src.commands.add import cmd_add
+from src.commands.checkout import cmd_checkout
 from src.commands.commit import cmd_commit
+from src.commands.init import cmd_init
+from src.core.objects import VesCommit, object_find, object_read
 from src.core.repository import repo_find
-from src.core.objects import object_find, object_read, VesCommit, VesTree
 
 
 class TestCheckoutCommand:
@@ -29,7 +29,7 @@ class TestCheckoutCommand:
         # Create some files
         test_file = repo_path / "test.txt"
         test_file.write_text("Hello, World!")
-        
+
         src_dir = repo_path / "src"
         src_dir.mkdir()
         src_file = src_dir / "main.py"
@@ -38,7 +38,7 @@ class TestCheckoutCommand:
         # Add and commit files
         add_args = Namespace(path=["test.txt", "src/main.py"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Initial commit")
         cmd_commit(commit_args)
 
@@ -50,7 +50,7 @@ class TestCheckoutCommand:
 
         # Create destination directory
         dest_dir = Path(temp_dir) / "checkout_dest"
-        
+
         # Checkout to destination
         checkout_args = Namespace(commit=head_sha, path=str(dest_dir))
         cmd_checkout(checkout_args)
@@ -60,10 +60,12 @@ class TestCheckoutCommand:
         assert (dest_dir / "test.txt").exists()
         assert (dest_dir / "src").exists()
         assert (dest_dir / "src" / "main.py").exists()
-        
+
         # Verify file contents
         assert (dest_dir / "test.txt").read_text() == "Hello, World!"
-        assert (dest_dir / "src" / "main.py").read_text() == "print('Hello from Python')"
+        assert (
+            dest_dir / "src" / "main.py"
+        ).read_text() == "print('Hello from Python')"
 
     def test_checkout_commit_to_existing_empty_directory(self, temp_dir, clean_env):
         """Test checking out a commit to an existing empty directory."""
@@ -78,10 +80,10 @@ class TestCheckoutCommand:
         # Create and commit a file
         test_file = repo_path / "test.txt"
         test_file.write_text("Test content")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Test commit")
         cmd_commit(commit_args)
 
@@ -94,7 +96,7 @@ class TestCheckoutCommand:
         # Create empty destination directory
         dest_dir = Path(temp_dir) / "checkout_dest"
         dest_dir.mkdir()
-        
+
         # Checkout to existing empty directory
         checkout_args = Namespace(commit=head_sha, path=str(dest_dir))
         cmd_checkout(checkout_args)
@@ -116,10 +118,10 @@ class TestCheckoutCommand:
         # Create and commit files
         test_file = repo_path / "test.txt"
         test_file.write_text("Tree test content")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Tree test commit")
         cmd_commit(commit_args)
 
@@ -128,16 +130,16 @@ class TestCheckoutCommand:
         assert repo is not None
         head_sha = object_find(repo, "HEAD")
         assert head_sha is not None
-        
+
         commit_obj = object_read(repo, head_sha)
         assert commit_obj is not None
         assert isinstance(commit_obj, VesCommit)
-        
+
         tree_sha = commit_obj.kvlm[b"tree"].decode("ascii")
 
         # Create destination directory
         dest_dir = Path(temp_dir) / "tree_checkout"
-        
+
         # Checkout tree directly
         checkout_args = Namespace(commit=tree_sha, path=str(dest_dir))
         cmd_checkout(checkout_args)
@@ -178,7 +180,7 @@ class TestCheckoutCommand:
         file_paths = [file_path for file_path, _ in files_to_create]
         add_args = Namespace(path=file_paths)
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Add nested structure")
         cmd_commit(commit_args)
 
@@ -190,7 +192,7 @@ class TestCheckoutCommand:
 
         # Create destination directory
         dest_dir = Path(temp_dir) / "nested_checkout"
-        
+
         # Checkout the structure
         checkout_args = Namespace(commit=head_sha, path=str(dest_dir))
         cmd_checkout(checkout_args)
@@ -199,7 +201,9 @@ class TestCheckoutCommand:
         for file_path, content in files_to_create:
             full_dest_path = dest_dir / file_path
             assert full_dest_path.exists(), f"File {file_path} should exist"
-            assert full_dest_path.read_text() == content, f"Content mismatch in {file_path}"
+            assert (
+                full_dest_path.read_text() == content
+            ), f"Content mismatch in {file_path}"
 
         # Verify directory structure
         assert (dest_dir / "src").is_dir()
@@ -221,10 +225,10 @@ class TestCheckoutCommand:
         # Create and commit a file
         test_file = repo_path / "test.txt"
         test_file.write_text("Test content")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Test commit")
         cmd_commit(commit_args)
 
@@ -238,10 +242,10 @@ class TestCheckoutCommand:
         dest_dir = Path(temp_dir) / "non_empty_dest"
         dest_dir.mkdir()
         (dest_dir / "existing_file.txt").write_text("Already exists")
-        
+
         # Checkout should fail
         checkout_args = Namespace(commit=head_sha, path=str(dest_dir))
-        
+
         with pytest.raises(Exception, match="Not empty"):
             cmd_checkout(checkout_args)
 
@@ -258,10 +262,10 @@ class TestCheckoutCommand:
         # Create and commit a file
         test_file = repo_path / "test.txt"
         test_file.write_text("Test content")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Test commit")
         cmd_commit(commit_args)
 
@@ -274,10 +278,10 @@ class TestCheckoutCommand:
         # Create file at destination path
         dest_file = Path(temp_dir) / "dest_file.txt"
         dest_file.write_text("This is a file, not a directory")
-        
+
         # Checkout should fail
         checkout_args = Namespace(commit=head_sha, path=str(dest_file))
-        
+
         with pytest.raises(Exception, match="Not a directory"):
             cmd_checkout(checkout_args)
 
@@ -293,15 +297,15 @@ class TestCheckoutCommand:
 
         # Create destination directory
         dest_dir = Path(temp_dir) / "checkout_dest"
-        
+
         # Try to checkout nonexistent commit
         fake_sha = "1234567890abcdef1234567890abcdef12345678"
         checkout_args = Namespace(commit=fake_sha, path=str(dest_dir))
-        
+
         # Should raise if object not found
         with pytest.raises(Exception, match=f"No such reference {fake_sha}."):
             cmd_checkout(checkout_args)
-        
+
         # Destination should not be created
         assert not dest_dir.exists()
 
@@ -311,7 +315,7 @@ class TestCheckoutCommand:
 
         # Create destination directory
         dest_dir = Path(temp_dir) / "checkout_dest"
-        
+
         # Try to checkout without repository
         checkout_args = Namespace(commit="HEAD", path=str(dest_dir))
 
@@ -330,13 +334,13 @@ class TestCheckoutCommand:
 
         # Create destination directory
         dest_dir = Path(temp_dir) / "checkout_dest"
-        
+
         # Try to checkout HEAD in empty repository
         checkout_args = Namespace(commit="HEAD", path=str(dest_dir))
-        
+
         # Should return silently when HEAD doesn't exist
         cmd_checkout(checkout_args)
-        
+
         # Destination should not be created
         assert not dest_dir.exists()
 
@@ -358,7 +362,7 @@ class TestCheckoutCommand:
         # Add and commit binary file
         add_args = Namespace(path=["data.bin"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Add binary file")
         cmd_commit(commit_args)
 
@@ -370,7 +374,7 @@ class TestCheckoutCommand:
 
         # Create destination directory
         dest_dir = Path(temp_dir) / "binary_checkout"
-        
+
         # Checkout binary file
         checkout_args = Namespace(commit=head_sha, path=str(dest_dir))
         cmd_checkout(checkout_args)
@@ -392,16 +396,16 @@ class TestCheckoutCommand:
         # Create and commit a file
         test_file = repo_path / "test.txt"
         test_file.write_text("Reference test")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Reference commit")
         cmd_commit(commit_args)
 
         # Create destination directory
         dest_dir = Path(temp_dir) / "ref_checkout"
-        
+
         # Checkout using HEAD reference
         checkout_args = Namespace(commit="HEAD", path=str(dest_dir))
         cmd_checkout(checkout_args)
@@ -423,7 +427,7 @@ class TestCheckoutCommand:
         # Create files with different content types
         regular_file = repo_path / "regular.txt"
         regular_file.write_text("Regular file content")
-        
+
         # Create what would be an executable (though we can't easily test actual execution permissions)
         script_file = repo_path / "script.sh"
         script_file.write_text("#!/bin/bash\necho 'Hello'")
@@ -431,7 +435,7 @@ class TestCheckoutCommand:
         # Add and commit files
         add_args = Namespace(path=["regular.txt", "script.sh"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Add files with different types")
         cmd_commit(commit_args)
 
@@ -443,7 +447,7 @@ class TestCheckoutCommand:
 
         # Create destination directory
         dest_dir = Path(temp_dir) / "perm_checkout"
-        
+
         # Checkout files
         checkout_args = Namespace(commit=head_sha, path=str(dest_dir))
         cmd_checkout(checkout_args)

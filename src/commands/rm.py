@@ -1,8 +1,8 @@
-from argparse import Namespace
-from src.core.repository import repo_find
 import os
+from argparse import Namespace
+
 from src.core.index import index_read, index_write
-from src.core.repository import VesRepository
+from src.core.repository import VesRepository, repo_find
 
 
 def cmd_rm(args: Namespace) -> None:

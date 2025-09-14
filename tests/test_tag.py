@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from src.commands.tag import cmd_tag, tag_create
-from src.commands.init import cmd_init
 from src.commands.add import cmd_add
 from src.commands.commit import cmd_commit
+from src.commands.init import cmd_init
+from src.commands.tag import cmd_tag, tag_create
+from src.core.objects import VesTag, object_read
 from src.core.refs import ref_list, ref_resolve
 from src.core.repository import repo_find
-from src.core.objects import object_read, VesTag
 
 
 class TestTagCommand:

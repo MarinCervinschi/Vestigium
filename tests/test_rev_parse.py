@@ -395,7 +395,7 @@ class TestRevParseCommand:
 
         # Test rev-parse with the ambiguous name
         args = Namespace(name="test", type=None)
-        
+
         # Should raise exception for ambiguous reference
         with pytest.raises(Exception, match="Ambiguous reference test"):
             cmd_rev_parse(args)

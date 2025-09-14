@@ -7,7 +7,7 @@ import pytest
 from src.commands.add import cmd_add
 from src.commands.init import cmd_init
 from src.commands.ls_tree import cmd_ls_tree, ls_tree
-from src.core.objects import VesBlob, VesTree, object_write, object_read
+from src.core.objects import VesBlob, VesTree, object_read, object_write
 from src.core.repository import repo_find
 from src.utils.tree import VesTreeLeaf
 

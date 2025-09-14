@@ -1,12 +1,10 @@
 import os
-import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
-from src.libves import main, argparser
-from src.commands.init import cmd_init
+from src.libves import argparser, main
 
 
 class TestLibves:

@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from src.commands.add import cmd_add, add
+from src.commands.add import add, cmd_add
 from src.commands.init import cmd_init
 from src.core.index import index_read
-from src.core.repository import repo_find, VesRepository
+from src.core.repository import repo_find
 
 
 class TestAddCommand:

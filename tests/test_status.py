@@ -6,7 +6,7 @@ import pytest
 
 from src.commands.add import cmd_add
 from src.commands.init import cmd_init
-from src.commands.status import cmd_status, branch_get_active, cmd_status_branch
+from src.commands.status import branch_get_active, cmd_status, cmd_status_branch
 from src.core.repository import repo_find
 
 

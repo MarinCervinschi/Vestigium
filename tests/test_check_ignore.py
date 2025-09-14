@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from src.commands.check_ignore import cmd_check_ignore
-from src.commands.init import cmd_init
 from src.commands.add import cmd_add
+from src.commands.check_ignore import cmd_check_ignore
 from src.commands.commit import cmd_commit
+from src.commands.init import cmd_init
 from src.core.repository import repo_find
-from src.utils.ignore import vesignore_read, check_ignore, VesIgnore
+from src.utils.ignore import VesIgnore, check_ignore, vesignore_read
 
 
 class TestCheckIgnoreCommand:
@@ -55,23 +55,25 @@ src/*.pyc
         # Add .vesignore to index
         add_args = Namespace(path=[".vesignore"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Add ignore rules")
         cmd_commit(commit_args)
 
         # Test various paths
-        args = Namespace(path=[
-            "app.log",           # Should be ignored (*.log)
-            "temp.tmp",          # Should be ignored (*.tmp)
-            "build/output.exe",  # Should be ignored (build/)
-            "src/test.pyc",      # Should be ignored (src/*.pyc)
-            "src/main.py",       # Should NOT be ignored
-            "README.md",         # Should NOT be ignored
-        ])
+        args = Namespace(
+            path=[
+                "app.log",  # Should be ignored (*.log)
+                "temp.tmp",  # Should be ignored (*.tmp)
+                "build/output.exe",  # Should be ignored (build/)
+                "src/test.pyc",  # Should be ignored (src/*.pyc)
+                "src/main.py",  # Should NOT be ignored
+                "README.md",  # Should NOT be ignored
+            ]
+        )
         cmd_check_ignore(args)
 
         captured = capsys.readouterr()
-        output_lines = captured.out.strip().split('\n')
+        output_lines = captured.out.strip().split("\n")
         ignored_paths = [line.strip() for line in output_lines if line.strip()]
 
         assert "app.log" in ignored_paths
@@ -107,21 +109,23 @@ build/
         # Add .vesignore to index
         add_args = Namespace(path=[".vesignore"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Add negation rules")
         cmd_commit(commit_args)
 
         # Test paths with negation rules
-        args = Namespace(path=[
-            "debug.log",         # Should be ignored (*.log)
-            "important.log",     # Should NOT be ignored (!important.log)
-            "build/output.exe",  # Should be ignored (build/)
-            "build/keep.txt",    # Should NOT be ignored (!build/keep.txt)
-        ])
+        args = Namespace(
+            path=[
+                "debug.log",  # Should be ignored (*.log)
+                "important.log",  # Should NOT be ignored (!important.log)
+                "build/output.exe",  # Should be ignored (build/)
+                "build/keep.txt",  # Should NOT be ignored (!build/keep.txt)
+            ]
+        )
         cmd_check_ignore(args)
 
         captured = capsys.readouterr()
-        output_lines = captured.out.strip().split('\n')
+        output_lines = captured.out.strip().split("\n")
         ignored_paths = [line.strip() for line in output_lines if line.strip()]
 
         assert "debug.log" in ignored_paths
@@ -150,15 +154,17 @@ private/
         exclude_file.write_text(exclude_content)
 
         # Test paths
-        args = Namespace(path=[
-            "config.secret",     # Should be ignored (*.secret)
-            "private/data.txt",  # Should be ignored (private/)
-            "public/info.txt",   # Should NOT be ignored
-        ])
+        args = Namespace(
+            path=[
+                "config.secret",  # Should be ignored (*.secret)
+                "private/data.txt",  # Should be ignored (private/)
+                "public/info.txt",  # Should NOT be ignored
+            ]
+        )
         cmd_check_ignore(args)
 
         captured = capsys.readouterr()
-        output_lines = captured.out.strip().split('\n')
+        output_lines = captured.out.strip().split("\n")
         ignored_paths = [line.strip() for line in output_lines if line.strip()]
 
         assert "config.secret" in ignored_paths
@@ -189,22 +195,24 @@ __pycache__/
         # Add scoped .vesignore to index
         add_args = Namespace(path=["src/.vesignore"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Add scoped ignore rules")
         cmd_commit(commit_args)
 
         # Test paths in different scopes
-        args = Namespace(path=[
-            "src/main.o",        # Should be ignored (src scope: *.o)
-            "src/lib.so",        # Should be ignored (src scope: *.so)
-            "src/__pycache__/test.pyc",  # Should be ignored (src scope: __pycache__/)
-            "docs/main.o",       # Should NOT be ignored (different scope)
-            "src/main.py",       # Should NOT be ignored
-        ])
+        args = Namespace(
+            path=[
+                "src/main.o",  # Should be ignored (src scope: *.o)
+                "src/lib.so",  # Should be ignored (src scope: *.so)
+                "src/__pycache__/test.pyc",  # Should be ignored (src scope: __pycache__/)
+                "docs/main.o",  # Should NOT be ignored (different scope)
+                "src/main.py",  # Should NOT be ignored
+            ]
+        )
         cmd_check_ignore(args)
 
         captured = capsys.readouterr()
-        output_lines = captured.out.strip().split('\n')
+        output_lines = captured.out.strip().split("\n")
         ignored_paths = [line.strip() for line in output_lines if line.strip()]
 
         assert "src/main.o" in ignored_paths
@@ -241,7 +249,7 @@ __pycache__/
         # Add .vesignore to index
         add_args = Namespace(path=[".vesignore"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Add ignore with comments")
         cmd_commit(commit_args)
 
@@ -250,7 +258,7 @@ __pycache__/
         cmd_check_ignore(args)
 
         captured = capsys.readouterr()
-        output_lines = captured.out.strip().split('\n')
+        output_lines = captured.out.strip().split("\n")
         ignored_paths = [line.strip() for line in output_lines if line.strip()]
 
         assert "test.log" in ignored_paths
@@ -278,7 +286,7 @@ __pycache__/
         # Add .vesignore to index
         add_args = Namespace(path=[".vesignore"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Add escaped patterns")
         cmd_commit(commit_args)
 
@@ -287,7 +295,7 @@ __pycache__/
         cmd_check_ignore(args)
 
         captured = capsys.readouterr()
-        output_lines = captured.out.strip().split('\n')
+        output_lines = captured.out.strip().split("\n")
         ignored_paths = [line.strip() for line in output_lines if line.strip()]
 
         assert "#not-a-comment.txt" in ignored_paths
@@ -344,24 +352,26 @@ test_*.py               # Prefix pattern
         # Add .vesignore to index
         add_args = Namespace(path=[".vesignore"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Add mixed patterns")
         cmd_commit(commit_args)
 
         # Test various paths
-        args = Namespace(path=[
-            "app.log",                    # Should be ignored (*.log)
-            "build/output.exe",           # Should be ignored (build/)
-            "src/deep/nested/cache.pyc",  # Should be ignored (src/**/*.pyc)
-            "test_main.py",              # Should be ignored (test_*.py)
-            "lib/node_modules/pkg/index.js", # Should be ignored (**/node_modules/)
-            "main.py",                   # Should NOT be ignored
-            "src/main.py",               # Should NOT be ignored
-        ])
+        args = Namespace(
+            path=[
+                "app.log",  # Should be ignored (*.log)
+                "build/output.exe",  # Should be ignored (build/)
+                "src/deep/nested/cache.pyc",  # Should be ignored (src/**/*.pyc)
+                "test_main.py",  # Should be ignored (test_*.py)
+                "lib/node_modules/pkg/index.js",  # Should be ignored (**/node_modules/)
+                "main.py",  # Should NOT be ignored
+                "src/main.py",  # Should NOT be ignored
+            ]
+        )
         cmd_check_ignore(args)
 
         captured = capsys.readouterr()
-        output_lines = captured.out.strip().split('\n')
+        output_lines = captured.out.strip().split("\n")
         ignored_paths = [line.strip() for line in output_lines if line.strip()]
 
         assert "app.log" in ignored_paths
