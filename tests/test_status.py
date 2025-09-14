@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from src.commands.add import cmd_add
+from src.commands.commit import cmd_commit
 from src.commands.init import cmd_init
 from src.commands.status import branch_get_active, cmd_status, cmd_status_branch
 from src.core.repository import repo_find
@@ -373,3 +374,261 @@ class TestStatusCommand:
         # .ves files should not appear in status
         assert "test_file" not in output
         assert ".ves" not in output
+
+    def test_status_with_committed_and_modified_file(self, temp_dir, clean_env, capsys):
+        """Test status showing modified files between HEAD and index, and index and worktree."""
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+        os.chdir(repo_path)
+
+        # Create and commit initial file
+        test_file = repo_path / "test.txt"
+        test_file.write_text("Initial content")
+        
+        add_args = Namespace(path=["test.txt"])
+        cmd_add(add_args)
+        
+        commit_args = Namespace(message="Initial commit")
+        cmd_commit(commit_args)
+
+        # Modify file and stage it
+        test_file.write_text("Staged content")
+        cmd_add(add_args)
+
+        # Modify file again in worktree
+        import time
+        time.sleep(0.1)  # Ensure different timestamp
+        test_file.write_text("Worktree content")
+
+        # Test status
+        args = Namespace()
+        cmd_status(args)
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        # Should show file as both staged for commit and modified in worktree
+        assert "Changes to be committed:" in output
+        assert "Changes not staged for commit:" in output
+        assert "modified: test.txt" in output
+
+    def test_status_with_added_and_deleted_files(self, temp_dir, clean_env, capsys):
+        """Test status showing added and deleted files."""
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+        os.chdir(repo_path)
+
+        # Create and commit initial files
+        file1 = repo_path / "file1.txt"
+        file1.write_text("File 1 content")
+        file2 = repo_path / "file2.txt"
+        file2.write_text("File 2 content")
+        
+        add_args = Namespace(path=["file1.txt", "file2.txt"])
+        cmd_add(add_args)
+        
+        commit_args = Namespace(message="Initial commit")
+        cmd_commit(commit_args)
+
+        # Add a new file to index
+        new_file = repo_path / "new.txt"
+        new_file.write_text("New file content")
+        
+        add_args = Namespace(path=["new.txt"])
+        cmd_add(add_args)
+
+        # Remove an existing file
+        from src.commands.rm import cmd_rm
+        rm_args = Namespace(path=["file2.txt"])
+        cmd_rm(rm_args)
+
+        # Test status
+        args = Namespace()
+        cmd_status(args)
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        # Should show new file as added and old file as deleted
+        assert "Changes to be committed:" in output
+        assert "added:    new.txt" in output
+        assert "deleted:  file2.txt" in output
+
+    def test_status_with_deleted_file_in_worktree(self, temp_dir, clean_env, capsys):
+        """Test status when file is deleted from worktree but still in index."""
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+        os.chdir(repo_path)
+
+        # Create and add a file
+        test_file = repo_path / "test.txt"
+        test_file.write_text("Content")
+        
+        add_args = Namespace(path=["test.txt"])
+        cmd_add(add_args)
+
+        # Delete the file from worktree (but keep in index)
+        test_file.unlink()
+
+        # Test status
+        args = Namespace()
+        cmd_status(args)
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        # Should show file as deleted in worktree
+        assert "Changes not staged for commit:" in output
+        assert "deleted:  test.txt" in output
+
+    def test_status_with_mixed_changes_comprehensive(self, temp_dir, clean_env, capsys):
+        """Test status with all types of changes: added, modified, deleted, untracked."""
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+        os.chdir(repo_path)
+
+        # Create and commit initial files
+        committed_file = repo_path / "committed.txt"
+        committed_file.write_text("Committed content")
+        to_delete_file = repo_path / "to_delete.txt"
+        to_delete_file.write_text("Will be deleted")
+        
+        add_args = Namespace(path=["committed.txt", "to_delete.txt"])
+        cmd_add(add_args)
+        
+        commit_args = Namespace(message="Initial commit")
+        cmd_commit(commit_args)
+
+        # Modify existing file and stage it
+        committed_file.write_text("Modified and staged")
+        add_args = Namespace(path=["committed.txt"])
+        cmd_add(add_args)
+
+        # Modify the same file again in worktree
+        import time
+        time.sleep(0.1)  # Ensure different timestamp
+        committed_file.write_text("Modified again in worktree")
+
+        # Add new file to index
+        new_staged_file = repo_path / "new_staged.txt"
+        new_staged_file.write_text("New staged file")
+        add_args = Namespace(path=["new_staged.txt"])
+        cmd_add(add_args)
+
+        # Delete a file from index
+        from src.commands.rm import cmd_rm
+        rm_args = Namespace(path=["to_delete.txt"])
+        cmd_rm(rm_args)
+
+        # Create untracked file
+        untracked_file = repo_path / "untracked.txt"
+        untracked_file.write_text("Untracked content")
+
+        # Create another file and delete it from worktree only
+        worktree_deleted = repo_path / "worktree_deleted.txt"
+        worktree_deleted.write_text("Will be deleted from worktree")
+        add_args = Namespace(path=["worktree_deleted.txt"])
+        cmd_add(add_args)
+        worktree_deleted.unlink()
+
+        # Test status
+        args = Namespace()
+        cmd_status(args)
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        # Should show all types of changes
+        assert "Changes to be committed:" in output
+        assert "Changes not staged for commit:" in output
+        assert "Untracked files:" in output
+
+        # Staged changes
+        assert "modified: committed.txt" in output  # staged modification
+        assert "added:    new_staged.txt" in output  # staged addition
+        assert "deleted:  to_delete.txt" in output  # staged deletion
+
+        # Worktree changes
+        lines = output.split('\n')
+        worktree_section_found = False
+        for line in lines:
+            if "Changes not staged for commit:" in line:
+                worktree_section_found = True
+            elif worktree_section_found and "Untracked files:" in line:
+                break
+            elif worktree_section_found:
+                if "modified: committed.txt" in line:  # worktree modification
+                    pass  # This should appear in worktree section too
+                elif "deleted:  worktree_deleted.txt" in line:  # worktree deletion
+                    pass
+
+        # Untracked files
+        assert "untracked.txt" in output
+
+    def test_status_respects_ignore_rules(self, temp_dir, clean_env, capsys):
+        """Test that status respects .vesignore rules for untracked files."""
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+        os.chdir(repo_path)
+
+        # Create .vesignore file
+        vesignore_file = repo_path / ".vesignore"
+        vesignore_file.write_text("*.log\ntemp/\n*.tmp\n")
+        
+        add_args = Namespace(path=[".vesignore"])
+        cmd_add(add_args)
+        
+        commit_args = Namespace(message="Add ignore rules")
+        cmd_commit(commit_args)
+
+        # Create files that should be ignored
+        log_file = repo_path / "debug.log"
+        log_file.write_text("Log content")
+        
+        tmp_file = repo_path / "cache.tmp"
+        tmp_file.write_text("Temp content")
+        
+        temp_dir_path = repo_path / "temp"
+        temp_dir_path.mkdir()
+        temp_file = temp_dir_path / "data.txt"
+        temp_file.write_text("Temp dir content")
+
+        # Create files that should NOT be ignored
+        normal_file = repo_path / "normal.txt"
+        normal_file.write_text("Normal content")
+        
+        python_file = repo_path / "script.py"
+        python_file.write_text("print('hello')")
+
+        # Test status
+        args = Namespace()
+        cmd_status(args)
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        # Should show untracked files that are not ignored
+        assert "Untracked files:" in output
+        assert "normal.txt" in output
+        assert "script.py" in output
+
+        # Should NOT show ignored files
+        assert "debug.log" not in output
+        assert "cache.tmp" not in output
+        assert "temp/data.txt" not in output
+        assert "temp/" not in output

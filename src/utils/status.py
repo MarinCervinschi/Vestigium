@@ -8,7 +8,7 @@ from src.utils.ignore import VesIgnore, check_ignore, vesignore_read
 from src.utils.tree import tree_to_dict
 
 
-def cmd_status_head_index(repo: VesRepository, index: Optional[VesIndex]) -> None:
+def cmd_status_head_index(repo: VesRepository, index: VesIndex) -> None:
     """
     Display changes between HEAD and the index (staged changes).
 
@@ -20,7 +20,7 @@ def cmd_status_head_index(repo: VesRepository, index: Optional[VesIndex]) -> Non
 
     Args:
         repo: The VesRepository instance to work with
-        index: The current index state, can be None for new repositories
+        index: The current index state
 
     Returns:
         None
@@ -28,12 +28,6 @@ def cmd_status_head_index(repo: VesRepository, index: Optional[VesIndex]) -> Non
     print("Changes to be committed:")
 
     head = tree_to_dict(repo, "HEAD")
-
-    if index is None:
-        # If no index, only show deletions from HEAD
-        for entry in head.keys():
-            print("  deleted: ", entry)
-        return
 
     for entry in index.entries:
         if entry.name in head:
@@ -49,7 +43,7 @@ def cmd_status_head_index(repo: VesRepository, index: Optional[VesIndex]) -> Non
         print("  deleted: ", entry)
 
 
-def cmd_status_index_worktree(repo: VesRepository, index: Optional[VesIndex]) -> None:
+def cmd_status_index_worktree(repo: VesRepository, index: VesIndex) -> None:
     """
     Display changes between the index and the working tree (unstaged changes).
 
@@ -88,15 +82,6 @@ def cmd_status_index_worktree(repo: VesRepository, index: Optional[VesIndex]) ->
 
     # We now traverse the index, and compare real files with the cached
     # versions.
-
-    if index is None:
-        # If no index, all files in worktree are untracked
-        print()
-        print("Untracked files:")
-        for f in all_files:
-            if not check_ignore(ignore, f):
-                print(" ", f)
-        return
 
     for entry in index.entries:
         full_path = os.path.join(repo.worktree, entry.name)
