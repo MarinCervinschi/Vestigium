@@ -304,8 +304,9 @@ def object_find(
         raise Exception(f"No such reference {name}.")
 
     if len(sha) > 1:
+        candidates = [s for s in sha if s is not None]
         raise Exception(
-            "Ambiguous reference {name}: Candidates are:\n - {'\n - '.join(sha)}."
+            f"Ambiguous reference {name}: Candidates are:\n - {'\n - '.join(candidates)}."
         )
 
     sha = sha[0]
