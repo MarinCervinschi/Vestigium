@@ -44,10 +44,11 @@ def branch_get_active(repo: VesRepository) -> Union[str, bool]:
         HEAD state or if the HEAD file cannot be read
     """
     file = repo_file(repo, "HEAD")
-    if file is None:
+    try:
+        with open(file, "r") as f:
+            head = f.read()
+    except (OSError, IOError):
         return False
-    with open(file, "r") as f:
-        head = f.read()
 
     if head.startswith("ref: refs/heads/"):
         return head[16:-1]

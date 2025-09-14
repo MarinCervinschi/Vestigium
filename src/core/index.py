@@ -113,7 +113,7 @@ def index_read(repo: VesRepository) -> VesIndex:
     index_file = repo_file(repo, "index")
 
     # New repositories have no index!
-    if index_file is None or not os.path.exists(index_file):
+    if not os.path.exists(index_file):
         return VesIndex()
 
     with open(index_file, "rb") as f:
@@ -231,8 +231,6 @@ def index_write(repo: VesRepository, index: VesIndex) -> None:
         have their required fields populated with valid values.
     """
     index_file = repo_file(repo, "index")
-    if index_file is None:
-        raise Exception("No index file in this repository.")
 
     with open(index_file, "wb") as f:
 

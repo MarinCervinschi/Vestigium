@@ -217,7 +217,7 @@ def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
     """
     path = repo_file(repo, "objects", sha[:2], sha[2:])
 
-    if path is None or not os.path.isfile(path):
+    if not os.path.isfile(path):
         return None
 
     with open(path, "rb") as f:
@@ -277,7 +277,7 @@ def object_write(obj: VesObject, repo: Optional[VesRepository] = None) -> str:
     if repo:
         path = repo_file(repo, "objects", sha[:2], sha[2:], mkdir=True)
 
-        if path is not None and not os.path.exists(path):
+        if not os.path.exists(path):
             with open(path, "wb") as f:
                 f.write(zlib.compress(result))
     return sha

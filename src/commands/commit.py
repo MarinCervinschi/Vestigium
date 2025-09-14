@@ -56,14 +56,10 @@ def cmd_commit(args: Namespace) -> None:
     active_branch = branch_get_active(repo)
     if active_branch and isinstance(active_branch, str):
         file = repo_file(repo, os.path.join("refs", "heads", active_branch))
-        if file is None:
-            raise Exception(f"Could not find file for branch {active_branch}!")
         with open(file, "w") as fd:
             fd.write(commit + "\n")
     else:
         file = repo_file(repo, "HEAD")
-        if file is None:
-            raise Exception("Could not find HEAD file!")
         with open(file, "w") as fd:
             fd.write(commit + "\n")
 

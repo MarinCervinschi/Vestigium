@@ -33,7 +33,7 @@ def ref_resolve(repo: VesRepository, ref: str) -> Optional[str]:
     """
     path = repo_file(repo, ref)
 
-    if path is None or not os.path.isfile(path):
+    if not os.path.isfile(path):
         return None
 
     with open(path, "r") as fp:
@@ -131,8 +131,6 @@ def ref_create(repo: VesRepository, ref_name: str, sha: str) -> None:
         References are stored as text files under .ves/refs/ with the SHA
         hash as content followed by a newline character.
     """
-    file = repo_file(repo, "refs/" + ref_name)
-    if file is None:
-        raise Exception(f"Could not create reference file for {ref_name}")
+    file = repo_file(repo, "refs/" + ref_name, mkdir=True)
     with open(file, "w") as fp:
         fp.write(sha + "\n")
