@@ -52,8 +52,8 @@ class TestCatFileCommand:
         fake_hash = "a" * 40  # Valid format but non-existent
         args = Namespace(object=fake_hash, type="blob")
 
-        # Should not crash, but should handle gracefully
-        cmd_cat_file(args)
+        with pytest.raises(Exception, match=f"No such reference {fake_hash}."):
+            cmd_cat_file(args)
 
     def test_cat_file_outside_repository(self, temp_dir, clean_env, capsys):
         """Test that cat-file fails gracefully outside a repository."""
@@ -166,25 +166,24 @@ class TestCatFileCommand:
         assert obj is not None
         assert obj.serialize() == large_content
 
-    # TODO: Re-enable when object type disambiguation is implemented
-    # def test_cat_file_different_types_accepted(self, temp_dir, clean_env):
-    #    """Test that cat-file accepts different object type parameters."""
-    #    os.chdir(temp_dir)
-    #
-    #    repo_path = Path(temp_dir) / "test_repo"
-    #    init_args = Namespace(path=str(repo_path))
-    #    cmd_init(init_args)
-    #
-    #    os.chdir(repo_path)
-    #    repo = repo_find()
-    #    assert repo is not None
-    #
-    #    test_content = b"test content"
-    #    blob = VesBlob(test_content)
-    #    blob_hash = object_write(blob, repo)
-    #
-    #    # Test with different type specifications (should all work for blob objects)
-    #    for obj_type in ["blob", "tree", "commit", "tag"]:
-    #        args = Namespace(object=blob_hash, type=obj_type)
-    #        # Should not crash regardless of type specified
-    #        cmd_cat_file(args)
+    def test_cat_file_different_types_accepted(self, temp_dir, clean_env):
+        """Test that cat-file accepts different object type parameters."""
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+
+        os.chdir(repo_path)
+        repo = repo_find()
+        assert repo is not None
+
+        test_content = b"test content"
+        blob = VesBlob(test_content)
+        blob_hash = object_write(blob, repo)
+
+        # Test with different type specifications (should all work for blob objects)
+        for obj_type in ["blob", "tree", "commit", "tag"]:
+            args = Namespace(object=blob_hash, type=obj_type)
+            # Should not crash regardless of type specified
+            cmd_cat_file(args)

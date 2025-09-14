@@ -1,0 +1,7 @@
+[user]
+name = Test User
+email = test@vestigium.local
+
+[core]
+editor = vim
+autocrlf = false

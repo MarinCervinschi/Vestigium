@@ -1,11 +1,15 @@
 import hashlib
 import os
+import re
 import zlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import IO, ClassVar, Optional
+from typing import IO, ClassVar, List, Optional
 
-from src.core.repository import VesRepository, repo_file
+from src.core.refs import ref_resolve
+from src.core.repository import VesRepository, repo_dir, repo_file
+from src.utils.kvlm import kvlm_parse, kvlm_serialize
+from src.utils.tree import VesTreeLeaf, tree_parse, tree_serialize
 
 
 @dataclass
@@ -78,19 +82,55 @@ class VesCommit(VesObject):
 
     Commits store metadata about a change including author, committer,
     timestamp, commit message, and references to tree and parent commits.
+    The commit data is stored in KVLM (Key-Value List with Message) format.
+
+    Attributes:
+        kvlm (dict): Dictionary containing commit metadata with the following structure:
+                    - b'tree': SHA of the tree object
+                    - b'parent': SHA of parent commit(s) (can be multiple for merges)
+                    - b'author': Author information (name, email, timestamp)
+                    - b'committer': Committer information (name, email, timestamp)
+                    - None: Commit message (stored with key None)
+
+
     """
 
     fmt: ClassVar[bytes] = b"commit"
 
+    def __init__(self, data: Optional[bytes] = None) -> None:
+        """
+        Initialize a commit object.
+
+        Args:
+            data (Optional[bytes]): Raw commit data in KVLM format to deserialize.
+                                  If None, creates an empty commit object.
+        """
+        super().__init__(data)
+
     def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
-        """Serialize commit object to bytes."""
-        # TODO: Implement commit serialization
-        return b""
+        """
+        Serialize commit object to bytes in KVLM format.
+
+        Args:
+            repo (Optional[VesRepository]): Repository context (unused for commits).
+
+        Returns:
+            bytes: Serialized commit data ready for storage.
+        """
+        return kvlm_serialize(self.kvlm)
 
     def deserialize(self, data: bytes) -> None:
-        """Deserialize bytes into commit object."""
-        # TODO: Implement commit deserialization
-        pass
+        """
+        Deserialize bytes into commit object.
+
+        Args:
+            data (bytes): Raw commit data in KVLM format from object store.
+        """
+        self.kvlm = kvlm_parse(data)
+
+    def init(self) -> None:
+        """Initialize an empty commit object with empty KVLM dictionary."""
+        self.kvlm = dict()
 
 
 class VesTree(VesObject):
@@ -103,18 +143,30 @@ class VesTree(VesObject):
 
     fmt: ClassVar[bytes] = b"tree"
 
+    def __init__(self, data: Optional[bytes] = None) -> None:
+        self.items: list[VesTreeLeaf] = list()
+        super().__init__(data)
+
     def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
-        """Serialize tree object to bytes."""
-        # TODO: Implement tree serialization
-        return b""
+        """Serialize tree object to bytes.
+
+        Args:
+            repo (Optional[VesRepository]): Repository context (unused for trees).
+
+        Returns:
+            bytes: Serialized tree data.
+        """
+        return tree_serialize(self)
 
     def deserialize(self, data: bytes) -> None:
         """Deserialize bytes into tree object."""
-        # TODO: Implement tree deserialization
-        pass
+        self.items = tree_parse(data)
+
+    def init(self) -> None:
+        self.items = list()
 
 
-class VesTag(VesObject):
+class VesTag(VesCommit):
     """
     Represents a tag object in the VCS.
 
@@ -123,16 +175,6 @@ class VesTag(VesObject):
     """
 
     fmt: ClassVar[bytes] = b"tag"
-
-    def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
-        """Serialize tag object to bytes."""
-        # TODO: Implement tag serialization
-        return b""
-
-    def deserialize(self, data: bytes) -> None:
-        """Deserialize bytes into tag object."""
-        # TODO: Implement tag deserialization
-        pass
 
 
 class VesBlob(VesObject):
@@ -185,7 +227,7 @@ def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
     """
     path = repo_file(repo, "objects", sha[:2], sha[2:])
 
-    if path is None or not os.path.isfile(path):
+    if not os.path.isfile(path):
         return None
 
     with open(path, "rb") as f:
@@ -202,7 +244,7 @@ def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
 
         match fmt:
             case b"commit":
-                c = VesCommit
+                c: type[VesObject] = VesCommit
             case b"tree":
                 c = VesTree
             case b"tag":
@@ -245,15 +287,15 @@ def object_write(obj: VesObject, repo: Optional[VesRepository] = None) -> str:
     if repo:
         path = repo_file(repo, "objects", sha[:2], sha[2:], mkdir=True)
 
-        if path is not None and not os.path.exists(path):
+        if not os.path.exists(path):
             with open(path, "wb") as f:
                 f.write(zlib.compress(result))
     return sha
 
 
 def object_find(
-    repo: VesRepository, name, fmt: Optional[bytes] = None, follow: bool = True
-) -> str:
+    repo: VesRepository, name: str, fmt: Optional[bytes] = None, follow: bool = True
+) -> Optional[str]:
     """
     Finds a VCS object by its name (SHA-1 hash or filename) in the repository.
 
@@ -266,9 +308,49 @@ def object_find(
     Returns:
         Optional[str]: The SHA-1 hash of the found object, or None if not found.
     """
-    # TODO: Implement object finding logic (e.g., resolving short SHAs, filenames)
-    # For now, assume name is a full SHA-1 hash
-    return name
+    sha_list = object_resolve(repo, name)
+
+    if not sha_list:
+        raise Exception(f"No such reference {name}.")
+
+    if len(sha_list) > 1:
+        candidates = [s for s in sha_list if s is not None]
+        raise Exception(
+            f"Ambiguous reference {name}: Candidates are:\n - {'\n - '.join(candidates)}."
+        )
+
+    sha = sha_list[0]
+    if sha is None:
+        return None
+
+    if not fmt:
+        return sha
+
+    while True:
+        obj = object_read(repo, sha)
+        #     ^^^^^^^^^^^ < this is a bit agressive: we're reading
+        # the full object just to get its type.  And we're doing
+        # that in a loop, albeit normally short.  Don't expect
+        # high performance here.
+
+        if obj is None:
+            raise Exception(f"Cannot read object {sha}.")
+
+        if obj.fmt == fmt:
+            return sha
+
+        if not follow:
+            return None
+
+        # Follow tags
+        if obj.fmt == b"tag":
+            assert isinstance(obj, VesTag)
+            sha = obj.kvlm[b"object"].decode("ascii")
+        elif obj.fmt == b"commit" and fmt == b"tree":
+            assert isinstance(obj, VesCommit)
+            sha = obj.kvlm[b"tree"].decode("ascii")
+        else:
+            return None
 
 
 def object_hash(fd: IO[bytes], fmt: bytes, repo: Optional[VesRepository] = None) -> str:
@@ -290,7 +372,7 @@ def object_hash(fd: IO[bytes], fmt: bytes, repo: Optional[VesRepository] = None)
 
     match fmt:
         case b"commit":
-            obj = VesCommit(data)
+            obj: VesObject = VesCommit(data)
         case b"tree":
             obj = VesTree(data)
         case b"tag":
@@ -298,6 +380,78 @@ def object_hash(fd: IO[bytes], fmt: bytes, repo: Optional[VesRepository] = None)
         case b"blob":
             obj = VesBlob(data)
         case _:
-            raise Exception(f"Unknown type {fmt}!")
+            raise Exception(f"Unknown type {fmt.decode('utf-8')}!")
 
     return object_write(obj, repo)
+
+
+def object_resolve(repo: VesRepository, name: str) -> Optional[List[Optional[str]]]:
+    """
+    Resolve a name to one or more object SHA hashes in the repository.
+
+    This function implements Ves's flexible object resolution strategy, supporting
+    multiple naming conventions and returning all possible matches. It's designed
+    to handle ambiguous references gracefully by returning a list of candidates.
+
+    Args:
+        repo (VesRepository): The repository to search in
+        name (str): The name to resolve, which can be:
+                   - "HEAD": Special literal for current commit
+                   - Full SHA hash (40 hex characters)
+                   - Partial SHA hash (4-39 hex characters)
+                   - Tag name (resolves to refs/tags/{name})
+                   - Branch name (resolves to refs/heads/{name})
+                   - Remote branch name (resolves to refs/remotes/{name})
+
+    Returns:
+        Optional[List[Optional[str]]]: List of matching SHA hashes, or None if:
+                                      - Empty/whitespace-only name provided
+                                      - No matches found
+
+    Resolution priority and behavior:
+        1. HEAD literal: Returns the SHA that HEAD points to
+        2. SHA hash patterns: Searches object store for matching hashes
+           - Supports partial hashes (minimum 4 characters)
+           - Case-insensitive matching
+        3. Tag references: Looks for refs/tags/{name}
+        4. Branch references: Looks for refs/heads/{name}
+        5. Remote branches: Looks for refs/remotes/{name}
+
+    Multiple matches can occur with:
+        - Partial SHA hashes that match multiple objects
+        - Names that exist as both tags and branches
+        - Hash prefixes that match multiple stored objects
+    """
+    candidates: list[Optional[str]] = list()
+    hashRE = re.compile(r"^[0-9A-Fa-f]{4,40}$")
+
+    if not name.strip():
+        return None
+
+    if name == "HEAD":
+        return [ref_resolve(repo, "HEAD")]
+
+    # Try to resolve as SHA hash (full or partial)
+    if hashRE.match(name):
+        name = name.lower()
+        prefix = name[0:2]
+        path = repo_dir(repo, "objects", prefix, mkdir=False)
+        if path:
+            rem = name[2:]  # Remaining characters after prefix
+            for f in os.listdir(path):
+                if f.startswith(rem):
+                    candidates.append(prefix + f)
+
+    as_tag = ref_resolve(repo, "refs/tags/" + name)
+    if as_tag:
+        candidates.append(as_tag)
+
+    as_branch = ref_resolve(repo, "refs/heads/" + name)
+    if as_branch:
+        candidates.append(as_branch)
+
+    as_remote_branch = ref_resolve(repo, "refs/remotes/" + name)
+    if as_remote_branch:
+        candidates.append(as_remote_branch)
+
+    return candidates

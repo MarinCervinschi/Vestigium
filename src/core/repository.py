@@ -20,9 +20,9 @@ class VesRepository:
             raise Exception(f"Not a Ves repository {path}")
 
         self._conf = configparser.ConfigParser()
-        cf: Optional[str] = repo_file(self, "config")
-        if cf and os.path.exists(cf):
-            self._conf.read([cf])
+        config_path = repo_path(self, "config")
+        if os.path.exists(config_path):
+            self._conf.read([config_path])
         elif not force:
             raise Exception("Configuration file missing")
 
@@ -57,7 +57,7 @@ def repo_path(repo: VesRepository, *path: str) -> str:
     return os.path.join(repo.vesdir, *path)
 
 
-def repo_file(repo: VesRepository, *path: str, mkdir: bool = False) -> Optional[str]:
+def repo_file(repo: VesRepository, *path: str, mkdir: bool = False) -> str:
     """
     Returns the absolute path to a file under the repository's .ves directory, optionally creating parent directories.
     Example: repo_file(repo, "refs", "remotes", "origin", "HEAD") will create .ves/refs/remotes/origin if mkdir=True.
@@ -66,11 +66,16 @@ def repo_file(repo: VesRepository, *path: str, mkdir: bool = False) -> Optional[
         *path: Path components for the file.
         mkdir: If True, create parent directories if they do not exist.
     Returns:
-        Optional[str]: The absolute file path, or None if creation failed.
+        str: The absolute file path.
+    Raises:
+        Exception: If parent directory creation fails and mkdir=True, or if parent directory doesn't exist and mkdir=False.
     """
-    if repo_dir(repo, *path[:-1], mkdir=mkdir):
-        return repo_path(repo, *path)
-    return None
+    parent_dir = repo_dir(repo, *path[:-1], mkdir=mkdir)
+    if parent_dir is None:
+        raise Exception(
+            f"Parent directory for file {'/'.join(path)} does not exist and mkdir=False"
+        )
+    return repo_path(repo, *path)
 
 
 def repo_dir(repo: VesRepository, *path: str, mkdir: bool = False) -> Optional[str]:
@@ -125,23 +130,17 @@ def repo_create(path: str) -> VesRepository:
     assert repo_dir(repo, "refs", "tags", mkdir=True)
     assert repo_dir(repo, "refs", "heads", mkdir=True)
 
-    description_path = repo_file(repo, "description")
-    if not description_path:
-        raise Exception("Could not create description file path.")
+    description_path = repo_file(repo, "description", mkdir=True)
     with open(description_path, "w") as f:
         f.write(
             "Unnamed repository; edit this file 'description' to name the repository.\n"
         )
 
-    head_path = repo_file(repo, "HEAD")
-    if not head_path:
-        raise Exception("Could not create HEAD file path.")
+    head_path = repo_file(repo, "HEAD", mkdir=True)
     with open(head_path, "w") as f:
         f.write("ref: refs/heads/master\n")
 
-    config_path = repo_file(repo, "config")
-    if not config_path:
-        raise Exception("Could not create config file path.")
+    config_path = repo_file(repo, "config", mkdir=True)
     with open(config_path, "w") as f:
         config = repo_default_config()
         config.write(f)

@@ -68,28 +68,49 @@ class TestHashObjectCommand:
         assert obj is not None
         assert obj.serialize() == test_content
 
-    # TODO: when other object types are implemented
-    # def test_hash_object_different_types(self, temp_dir, clean_env, capsys):
-    #    """Test that hash-object works with different object types."""
-    #    os.chdir(temp_dir)
-    #
-    #    test_file = Path(temp_dir) / "test.txt"
-    #    test_content = b"Same content"
-    #    test_file.write_bytes(test_content)
-    #
-    #    # Test different types produce different hashes
-    #    blob_args = Namespace(path=str(test_file), type="blob", write=False)
-    #    cmd_hash_object(blob_args)
-    #    blob_hash = capsys.readouterr().out.strip()
-    #
-    #    # Note: Other types (tree, commit, tag) are not fully implemented yet
-    #    # but we can test that the command accepts them
-    #    tree_args = Namespace(path=str(test_file), type="tree", write=False)
-    #    cmd_hash_object(tree_args)
-    #    tree_hash = capsys.readouterr().out.strip()
-    #
-    #    # Different types should produce different hashes for same content
-    #    assert blob_hash != tree_hash
+    def test_hash_object_different_types(self, temp_dir, clean_env, capsys):
+        """Test that hash-object works with different object types."""
+        os.chdir(temp_dir)
+
+        # Test blob type
+        blob_file = Path(temp_dir) / "test.txt"
+        blob_content = b"Hello, World!"
+        blob_file.write_bytes(blob_content)
+
+        blob_args = Namespace(path=str(blob_file), type="blob", write=False)
+        cmd_hash_object(blob_args)
+        blob_hash = capsys.readouterr().out.strip()
+
+        # Test commit type with proper KVLM format
+        commit_file = Path(temp_dir) / "test_commit.txt"
+        commit_content = b"tree 3b18e512dba79e4c8300dd08aeb37f8e728b8dad\nauthor Test User <test@example.com> 1234567890 +0000\ncommitter Test User <test@example.com> 1234567890 +0000\n\nTest commit message\n"
+        commit_file.write_bytes(commit_content)
+
+        commit_args = Namespace(path=str(commit_file), type="commit", write=False)
+        cmd_hash_object(commit_args)
+        commit_hash = capsys.readouterr().out.strip()
+
+        # Test tag type with proper KVLM format
+        tag_file = Path(temp_dir) / "test_tag.txt"
+        tag_content = b"object 3b18e512dba79e4c8300dd08aeb37f8e728b8dad\ntype commit\ntag v1.0\ntagger Test User <test@example.com> 1234567890 +0000\n\nTest tag message\n"
+        tag_file.write_bytes(tag_content)
+
+        tag_args = Namespace(path=str(tag_file), type="tag", write=False)
+        cmd_hash_object(tag_args)
+        tag_hash = capsys.readouterr().out.strip()
+
+        # Different types should produce different hashes
+        assert blob_hash != commit_hash
+        assert blob_hash != tag_hash
+        assert commit_hash != tag_hash
+
+        # Verify all hashes are valid SHA-1 (40 hex characters)
+        assert len(blob_hash) == 40
+        assert len(commit_hash) == 40
+        assert len(tag_hash) == 40
+        assert all(c in "0123456789abcdef" for c in blob_hash.lower())
+        assert all(c in "0123456789abcdef" for c in commit_hash.lower())
+        assert all(c in "0123456789abcdef" for c in tag_hash.lower())
 
     def test_hash_object_empty_file(self, temp_dir, clean_env, capsys):
         """Test that hash-object handles empty files correctly."""
@@ -167,7 +188,7 @@ class TestHashObjectCommand:
             cmd_hash_object(args)
 
     def test_hash_object_consistency_with_git(self, temp_dir, clean_env, capsys):
-        """Test that our hash matches expected Git behavior for known content."""
+        """Test that our hash matches expected Ves behavior for known content."""
         os.chdir(temp_dir)
 
         test_file = Path(temp_dir) / "hello.txt"
@@ -180,8 +201,8 @@ class TestHashObjectCommand:
         captured = capsys.readouterr()
         hash_output = captured.out.strip()
 
-        # This should match Git's hash for "hello world\n" as a blob
-        # Git: echo "hello world" | git hash-object --stdin
+        # This should match Ves's hash for "hello world\n" as a blob
+        # Ves: echo "hello world" | git hash-object --stdin
         # Expected: 3b18e512dba79e4c8300dd08aeb37f8e728b8dad
         expected_hash = "3b18e512dba79e4c8300dd08aeb37f8e728b8dad"
         assert hash_output == expected_hash
