@@ -65,14 +65,12 @@ def add(
     # Remove existing entries without deleting files
     rm(repo, paths, delete=False, skip_missing=True)
 
-    worktree = repo.worktree + os.sep
-
     # Validate paths and convert to (absolute, relative) pairs
     clean_paths = set()
     for path in paths:
         abspath = os.path.abspath(path)
-        if not (abspath.startswith(worktree) and os.path.isfile(abspath)):
-            raise Exception(f"Not a file, or outside the worktree: {paths}")
+        if not os.path.isfile(abspath):
+            raise Exception(f"Not a file: {abspath}")
         relpath = os.path.relpath(abspath, repo.worktree)
         clean_paths.add((abspath, relpath))
 

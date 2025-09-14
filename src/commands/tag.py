@@ -49,7 +49,7 @@ def cmd_tag(args: Namespace) -> None:
         )
     else:
         refs = ref_list(repo)
-        assert type(refs["tags"]) is RefDict
+        assert type(refs["tags"]) is dict
         show_ref(repo, refs["tags"], with_hash=False)
 
 
@@ -74,6 +74,9 @@ def tag_create(
     Returns:
         None: The tag is created and stored in the repository
 
+    Raises:
+        Exception: If the specified ref cannot be found in the repository
+
     Tag types:
         - Lightweight tag: Simple reference file pointing to a commit SHA
         - Annotated tag: Full object with metadata (tagger, message, date)
@@ -84,8 +87,7 @@ def tag_create(
         under refs/tags/<name>.
     """
     sha = object_find(repo, ref)
-    if sha is None:
-        raise Exception(f"Cannot find object {ref}")
+    assert sha is not None
 
     if create_tag_object:
         tag = VesTag()
