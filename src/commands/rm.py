@@ -20,8 +20,7 @@ def cmd_rm(args: Namespace) -> None:
         the function returns silently without performing any operation.
     """
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
     rm(repo, args.path)
 
 

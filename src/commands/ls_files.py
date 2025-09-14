@@ -33,8 +33,7 @@ def cmd_ls_files(args: Namespace) -> None:
         None
     """
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
     index = index_read(repo)
 
     for e in index.entries:

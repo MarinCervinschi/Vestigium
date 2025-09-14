@@ -32,8 +32,7 @@ def cmd_commit(args: Namespace) -> None:
         The commit message is expected to be in args.message.
     """
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
     index = index_read(repo)
 
     tree = tree_from_index(repo, index)

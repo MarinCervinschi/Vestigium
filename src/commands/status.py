@@ -18,8 +18,7 @@ def cmd_status(_) -> None:
         None
     """
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
     index = index_read(repo)
 
     cmd_status_branch(repo)

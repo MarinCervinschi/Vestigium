@@ -25,7 +25,6 @@ def cmd_rev_parse(args: Namespace) -> None:
         fmt = None
 
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
 
     print(object_find(repo, args.name, fmt, follow=True))

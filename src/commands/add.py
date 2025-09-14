@@ -23,8 +23,7 @@ def cmd_add(args: Namespace) -> None:
         the function returns silently without performing any operation.
     """
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
     add(repo, args.path)
 
 

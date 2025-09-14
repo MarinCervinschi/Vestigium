@@ -19,8 +19,7 @@ def cmd_ls_tree(args: Namespace) -> None:
                          - recursive: Whether to recursively list subdirectories
     """
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
     ls_tree(repo, args.tree, args.recursive)
 
 

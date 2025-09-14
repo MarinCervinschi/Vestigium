@@ -31,8 +31,7 @@ def cmd_checkout(args: Namespace) -> None:
         Exception: If destination exists but is not a directory, or if directory is not empty
     """
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
 
     sha = object_find(repo, args.commit)
     if sha is None:

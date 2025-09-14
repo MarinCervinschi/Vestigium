@@ -41,8 +41,7 @@ def cmd_tag(args: Namespace) -> None:
         Tag listing shows tags without their SHA hashes for cleaner output.
     """
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
 
     if args.name:
         tag_create(

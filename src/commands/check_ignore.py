@@ -18,8 +18,7 @@ def cmd_check_ignore(args: Namespace) -> None:
         Prints each path that is ignored by the repository's ignore rules.
     """
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
     rules = vesignore_read(repo)
     if rules is None:
         return

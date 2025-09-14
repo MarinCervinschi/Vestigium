@@ -23,8 +23,7 @@ def cmd_show_ref(_) -> None:
         012def... refs/remotes/origin/master
     """
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
     refs = ref_list(repo)
     show_ref(repo, refs, prefix="refs")
 

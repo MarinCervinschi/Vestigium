@@ -30,8 +30,7 @@ def cmd_log(args: Namespace) -> None:
         }
     """
     repo = repo_find()
-    if repo is None:
-        return
+    assert repo is not None
 
     print("digraph veslog{")
     print("  node[shape=rect]")
