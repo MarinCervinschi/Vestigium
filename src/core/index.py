@@ -31,23 +31,23 @@ class VesIndexEntry:
         name: Relative path of the file from repository root
 
     Note:
-        All fields are Optional during construction but must be non-None when
-        writing to the index file. Use proper filesystem values for metadata.
+        All fields are required and must contain valid values when creating an entry.
+        Use proper filesystem values for metadata.
     """
 
-    ctime: Optional[Tuple[int, int]] = None
-    mtime: Optional[Tuple[int, int]] = None
-    dev: Optional[int] = None
-    ino: Optional[int] = None
-    mode_type: Optional[int] = None
-    mode_perms: Optional[int] = None
-    uid: Optional[int] = None
-    gid: Optional[int] = None
-    fsize: Optional[int] = None
-    sha: Optional[str] = None
-    flag_assume_valid: Optional[bool] = None
-    flag_stage: Optional[int] = None
-    name: Optional[str] = None
+    ctime: Tuple[int, int]
+    mtime: Tuple[int, int]
+    dev: int
+    ino: int
+    mode_type: int
+    mode_perms: int
+    uid: int
+    gid: int
+    fsize: int
+    sha: str
+    flag_assume_valid: bool
+    flag_stage: int
+    name: str
 
 
 @dataclass
@@ -240,12 +240,11 @@ def index_write(repo: VesRepository, index: VesIndex) -> None:
 
     Raises:
         Exception: If the index file cannot be determined for the repository
-        ValueError: If any required entry fields are None
         OSError: If the index file cannot be written
 
     Note:
         This function will overwrite any existing index file. All entries must
-        have their required fields populated (non-None values).
+        have their required fields populated with valid values.
     """
     index_file = repo_file(repo, "index")
     if index_file is None:
@@ -265,25 +264,6 @@ def index_write(repo: VesRepository, index: VesIndex) -> None:
         # ENTRIES
         idx = 0
         for e in index.entries:
-            # Validate required fields
-            if (
-                e.ctime is None
-                or e.mtime is None
-                or e.dev is None
-                or e.ino is None
-                or e.mode_type is None
-                or e.mode_perms is None
-                or e.uid is None
-                or e.gid is None
-                or e.fsize is None
-                or e.sha is None
-                or e.flag_stage is None
-                or e.name is None
-            ):
-                raise ValueError(
-                    f"Entry '{e.name}' has None values for required fields"
-                )
-
             # Write timestamps
             f.write(e.ctime[0].to_bytes(4, "big"))
             f.write(e.ctime[1].to_bytes(4, "big"))

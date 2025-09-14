@@ -67,8 +67,6 @@ def vesignore_read(repo: VesRepository) -> Optional[VesIgnore]:
         return ret
 
     for entry in index.entries:
-        if entry.name is None or entry.sha is None:
-            continue
         if entry.name == ".vesignore" or entry.name.endswith("/.vesignore"):
             dir_name = os.path.dirname(entry.name)
             contents = object_read(repo, entry.sha)

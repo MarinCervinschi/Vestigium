@@ -249,8 +249,6 @@ def tree_from_index(repo: VesRepository, index: VesIndex) -> str:
 
     # Group entries by directory path
     for entry in index.entries:
-        if entry.name is None:
-            continue  # Skip invalid entries
         dirname = os.path.dirname(entry.name)
 
         # Create all directory entries up to root
@@ -274,9 +272,6 @@ def tree_from_index(repo: VesRepository, index: VesIndex) -> str:
         for entry in contents[path]:
             if isinstance(entry, VesIndexEntry):
                 # Handle regular file entry
-                if entry.name is None or entry.sha is None:
-                    continue  # Skip invalid entries
-
                 leaf_mode = f"{entry.mode_type:02o}{entry.mode_perms:04o}".encode(
                     "ascii"
                 )

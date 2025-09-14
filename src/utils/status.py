@@ -36,9 +36,6 @@ def cmd_status_head_index(repo: VesRepository, index: Optional[VesIndex]) -> Non
         return
 
     for entry in index.entries:
-        if entry.name is None or entry.sha is None:
-            continue
-
         if entry.name in head:
             if head[entry.name] != entry.sha:
                 print("  modified:", entry.name)
@@ -102,14 +99,6 @@ def cmd_status_index_worktree(repo: VesRepository, index: Optional[VesIndex]) ->
         return
 
     for entry in index.entries:
-        if (
-            entry.name is None
-            or entry.sha is None
-            or entry.ctime is None
-            or entry.mtime is None
-        ):
-            continue
-
         full_path = os.path.join(repo.worktree, entry.name)
 
         # That file *name* is in the index
