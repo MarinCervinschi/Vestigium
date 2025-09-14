@@ -36,6 +36,7 @@ def cmd_log(args: Namespace) -> None:
     print("  node[shape=rect]")
     sha = object_find(repo, args.commit)
     if sha is None:
+        print("}")
         return
     log_graphviz(repo, sha, set())
     print("}")
