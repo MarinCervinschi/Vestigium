@@ -4,7 +4,7 @@ from src.core.refs import RefDict, ref_list
 from src.core.repository import VesRepository, repo_find
 
 
-def cmd_show_ref(_) -> None:
+def cmd_show_ref(_: Namespace) -> None:
     """
     CLI command to display all references in the repository.
 
@@ -31,7 +31,7 @@ def cmd_show_ref(_) -> None:
 def show_ref(
     repo: VesRepository,
     refs: RefDict,
-    with_hash=True,
+    with_hash: bool = True,
     prefix: str = "",
 ) -> None:
     """

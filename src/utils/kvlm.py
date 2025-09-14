@@ -112,6 +112,10 @@ def kvlm_serialize(kvlm: dict) -> bytes:
             ret += k + b" " + (v.replace(b"\n", b"\n ")) + b"\n"
 
     # Append blank line and message
-    ret += b"\n" + kvlm[None]
+    message = kvlm.get(None, b"")
+    if isinstance(message, bytes):
+        ret += b"\n" + message
+    else:
+        ret += b"\n"
 
     return ret

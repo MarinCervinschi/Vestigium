@@ -39,8 +39,8 @@ def cmd_status_head_index(repo: VesRepository, index: VesIndex) -> None:
 
     # Keys still in HEAD are files that we haven't met in the index,
     # and thus have been deleted.
-    for entry in head.keys():
-        print("  deleted: ", entry)
+    for file_path in head.keys():
+        print("  deleted: ", file_path)
 
 
 def cmd_status_index_worktree(repo: VesRepository, index: VesIndex) -> None:

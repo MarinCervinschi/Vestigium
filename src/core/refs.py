@@ -91,9 +91,9 @@ def ref_list(repo: VesRepository, path: Optional[str] = None) -> RefDict:
         path = repo_dir(repo, "refs")
 
     if path is None:
-        return dict()
+        return {}
 
-    ret = dict()
+    ret: RefDict = {}
 
     for f in sorted(os.listdir(path)):
         can = os.path.join(path, f)

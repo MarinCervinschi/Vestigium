@@ -387,10 +387,10 @@ class TestStatusCommand:
         # Create and commit initial file
         test_file = repo_path / "test.txt"
         test_file.write_text("Initial content")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Initial commit")
         cmd_commit(commit_args)
 
@@ -400,6 +400,7 @@ class TestStatusCommand:
 
         # Modify file again in worktree
         import time
+
         time.sleep(0.1)  # Ensure different timestamp
         test_file.write_text("Worktree content")
 
@@ -429,22 +430,23 @@ class TestStatusCommand:
         file1.write_text("File 1 content")
         file2 = repo_path / "file2.txt"
         file2.write_text("File 2 content")
-        
+
         add_args = Namespace(path=["file1.txt", "file2.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Initial commit")
         cmd_commit(commit_args)
 
         # Add a new file to index
         new_file = repo_path / "new.txt"
         new_file.write_text("New file content")
-        
+
         add_args = Namespace(path=["new.txt"])
         cmd_add(add_args)
 
         # Remove an existing file
         from src.commands.rm import cmd_rm
+
         rm_args = Namespace(path=["file2.txt"])
         cmd_rm(rm_args)
 
@@ -472,7 +474,7 @@ class TestStatusCommand:
         # Create and add a file
         test_file = repo_path / "test.txt"
         test_file.write_text("Content")
-        
+
         add_args = Namespace(path=["test.txt"])
         cmd_add(add_args)
 
@@ -504,10 +506,10 @@ class TestStatusCommand:
         committed_file.write_text("Committed content")
         to_delete_file = repo_path / "to_delete.txt"
         to_delete_file.write_text("Will be deleted")
-        
+
         add_args = Namespace(path=["committed.txt", "to_delete.txt"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Initial commit")
         cmd_commit(commit_args)
 
@@ -518,6 +520,7 @@ class TestStatusCommand:
 
         # Modify the same file again in worktree
         import time
+
         time.sleep(0.1)  # Ensure different timestamp
         committed_file.write_text("Modified again in worktree")
 
@@ -529,6 +532,7 @@ class TestStatusCommand:
 
         # Delete a file from index
         from src.commands.rm import cmd_rm
+
         rm_args = Namespace(path=["to_delete.txt"])
         cmd_rm(rm_args)
 
@@ -561,7 +565,7 @@ class TestStatusCommand:
         assert "deleted:  to_delete.txt" in output  # staged deletion
 
         # Worktree changes
-        lines = output.split('\n')
+        lines = output.split("\n")
         worktree_section_found = False
         for line in lines:
             if "Changes not staged for commit:" in line:
@@ -589,20 +593,20 @@ class TestStatusCommand:
         # Create .vesignore file
         vesignore_file = repo_path / ".vesignore"
         vesignore_file.write_text("*.log\ntemp/\n*.tmp\n")
-        
+
         add_args = Namespace(path=[".vesignore"])
         cmd_add(add_args)
-        
+
         commit_args = Namespace(message="Add ignore rules")
         cmd_commit(commit_args)
 
         # Create files that should be ignored
         log_file = repo_path / "debug.log"
         log_file.write_text("Log content")
-        
+
         tmp_file = repo_path / "cache.tmp"
         tmp_file.write_text("Temp content")
-        
+
         temp_dir_path = repo_path / "temp"
         temp_dir_path.mkdir()
         temp_file = temp_dir_path / "data.txt"
@@ -611,7 +615,7 @@ class TestStatusCommand:
         # Create files that should NOT be ignored
         normal_file = repo_path / "normal.txt"
         normal_file.write_text("Normal content")
-        
+
         python_file = repo_path / "script.py"
         python_file.write_text("print('hello')")
 

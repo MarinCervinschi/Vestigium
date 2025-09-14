@@ -107,9 +107,12 @@ class VesCommit(VesObject):
         """
         super().__init__(data)
 
-    def serialize(self) -> bytes:
+    def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
         """
         Serialize commit object to bytes in KVLM format.
+
+        Args:
+            repo (Optional[VesRepository]): Repository context (unused for commits).
 
         Returns:
             bytes: Serialized commit data ready for storage.
@@ -144,8 +147,15 @@ class VesTree(VesObject):
         self.items: list[VesTreeLeaf] = list()
         super().__init__(data)
 
-    def serialize(self) -> bytes:
-        """Serialize tree object to bytes."""
+    def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
+        """Serialize tree object to bytes.
+
+        Args:
+            repo (Optional[VesRepository]): Repository context (unused for trees).
+
+        Returns:
+            bytes: Serialized tree data.
+        """
         return tree_serialize(self)
 
     def deserialize(self, data: bytes) -> None:
@@ -234,7 +244,7 @@ def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
 
         match fmt:
             case b"commit":
-                c = VesCommit
+                c: type[VesObject] = VesCommit
             case b"tree":
                 c = VesTree
             case b"tag":
@@ -298,18 +308,18 @@ def object_find(
     Returns:
         Optional[str]: The SHA-1 hash of the found object, or None if not found.
     """
-    sha = object_resolve(repo, name)
+    sha_list = object_resolve(repo, name)
 
-    if not sha:
+    if not sha_list:
         raise Exception(f"No such reference {name}.")
 
-    if len(sha) > 1:
-        candidates = [s for s in sha if s is not None]
+    if len(sha_list) > 1:
+        candidates = [s for s in sha_list if s is not None]
         raise Exception(
             f"Ambiguous reference {name}: Candidates are:\n - {'\n - '.join(candidates)}."
         )
 
-    sha = sha[0]
+    sha = sha_list[0]
     if sha is None:
         return None
 
@@ -362,7 +372,7 @@ def object_hash(fd: IO[bytes], fmt: bytes, repo: Optional[VesRepository] = None)
 
     match fmt:
         case b"commit":
-            obj = VesCommit(data)
+            obj: VesObject = VesCommit(data)
         case b"tree":
             obj = VesTree(data)
         case b"tag":
@@ -370,7 +380,7 @@ def object_hash(fd: IO[bytes], fmt: bytes, repo: Optional[VesRepository] = None)
         case b"blob":
             obj = VesBlob(data)
         case _:
-            raise Exception(f"Unknown type {fmt}!")
+            raise Exception(f"Unknown type {fmt.decode('utf-8')}!")
 
     return object_write(obj, repo)
 
@@ -412,7 +422,7 @@ def object_resolve(repo: VesRepository, name: str) -> Optional[List[Optional[str
         - Names that exist as both tags and branches
         - Hash prefixes that match multiple stored objects
     """
-    candidates = list()
+    candidates: list[Optional[str]] = list()
     hashRE = re.compile(r"^[0-9A-Fa-f]{4,40}$")
 
     if not name.strip():

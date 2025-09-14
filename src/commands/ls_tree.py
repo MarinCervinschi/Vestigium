@@ -63,26 +63,26 @@ def ls_tree(
 
     for item in obj.items:
         if len(item.mode) == 5:
-            type = item.mode[0:1]
+            type_bytes = item.mode[0:1]
         else:
-            type = item.mode[0:2]
+            type_bytes = item.mode[0:2]
 
-        match type:
+        match type_bytes:
             case b"04":
-                type = "tree"  # Directory
+                type_str = "tree"  # Directory
             case b"10":
-                type = "blob"  # Regular file
+                type_str = "blob"  # Regular file
             case b"12":
-                type = "blob"  # Symlink (contents is link target)
+                type_str = "blob"  # Symlink (contents is link target)
             case b"16":
-                type = "commit"  # Submodule reference
+                type_str = "commit"  # Submodule reference
             case _:
-                raise Exception(f"Weird tree leaf mode {item.mode}")
+                raise Exception(f"Weird tree leaf mode {item.mode.decode('ascii')}")
 
-        if not (recursive and type == "tree"):
+        if not (recursive and type_str == "tree"):
             # Leaf node: print the entry
             print(
-                f"{'0' * (6 - len(item.mode)) + item.mode.decode('ascii')} {type} {item.sha}\t{os.path.join(prefix, item.path)}"
+                f"{'0' * (6 - len(item.mode)) + item.mode.decode('ascii')} {type_str} {item.sha}\t{os.path.join(prefix, item.path)}"
             )
         else:
             # Directory node with recursive flag: recurse into subdirectory

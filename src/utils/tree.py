@@ -105,7 +105,7 @@ def tree_leaf_sort_key(leaf: VesTreeLeaf) -> str:
         return leaf.path + "/"
 
 
-def tree_serialize(obj):
+def tree_serialize(obj: "VesTree") -> bytes:
     obj.items.sort(key=tree_leaf_sort_key)
     ret = b""
     for i in obj.items:
@@ -178,7 +178,7 @@ def tree_to_dict(repo: VesRepository, ref: str, prefix: str = "") -> dict[str, s
     """
     from src.core.objects import VesTree, object_find, object_read
 
-    ret = dict()
+    ret: dict[str, str] = dict()
     tree_sha = object_find(repo, ref, fmt=b"tree")
     if tree_sha is None:
         return ret
@@ -239,7 +239,7 @@ def tree_from_index(repo: VesRepository, index: VesIndex) -> str:
     """
     from src.core.objects import VesTree, object_write
 
-    contents = dict()
+    contents: dict[str, list] = dict()
     contents[""] = list()
 
     # Group entries by directory path

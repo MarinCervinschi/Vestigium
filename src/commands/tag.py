@@ -55,7 +55,7 @@ def cmd_tag(args: Namespace) -> None:
 
 def tag_create(
     repo: VesRepository, name: str, ref: str, create_tag_object: bool = False
-):
+) -> None:
     """Create a Ves tag pointing to a specific commit or object.
 
     This function creates either a lightweight tag (just a reference) or an

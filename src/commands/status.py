@@ -1,4 +1,5 @@
-from typing import Any, Union
+from argparse import Namespace
+from typing import Union
 
 from src.core.index import index_read
 from src.core.objects import object_find
@@ -6,7 +7,7 @@ from src.core.repository import VesRepository, repo_file, repo_find
 from src.utils.status import cmd_status_head_index, cmd_status_index_worktree
 
 
-def cmd_status(_) -> None:
+def cmd_status(args: Namespace) -> None:
     """
     Display the status of the repository.
 
