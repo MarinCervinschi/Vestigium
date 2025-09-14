@@ -62,8 +62,6 @@ def rm(
         Use delete=False to only remove from index without touching filesystem.
     """
     index = index_read(repo)
-    if index is None or index.entries is None:
-        return
 
     worktree = repo.worktree + os.sep
 
@@ -81,8 +79,6 @@ def rm(
 
     # Filter entries: keep those not being removed
     for e in index.entries:
-        if e.name is None:
-            continue  # Skip invalid entries
         full_path = os.path.join(repo.worktree, e.name)
 
         if full_path in abspaths:

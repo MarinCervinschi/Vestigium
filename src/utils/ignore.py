@@ -63,9 +63,6 @@ def vesignore_read(repo: VesRepository) -> Optional[VesIgnore]:
 
     # .vesignore files in the index
     index = index_read(repo)
-    if index is None or index.entries is None:
-        return ret
-
     for entry in index.entries:
         if entry.name == ".vesignore" or entry.name.endswith("/.vesignore"):
             dir_name = os.path.dirname(entry.name)

@@ -241,9 +241,6 @@ def tree_from_index(repo: VesRepository, index: VesIndex) -> str:
     """
     from src.core.objects import object_write, VesTree
 
-    if index.entries is None:
-        raise ValueError("Index has no entries")
-
     contents = dict()
     contents[""] = list()
 

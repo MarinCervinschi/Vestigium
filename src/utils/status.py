@@ -29,7 +29,7 @@ def cmd_status_head_index(repo: VesRepository, index: Optional[VesIndex]) -> Non
 
     head = tree_to_dict(repo, "HEAD")
 
-    if index is None or index.entries is None:
+    if index is None:
         # If no index, only show deletions from HEAD
         for entry in head.keys():
             print("  deleted: ", entry)
@@ -89,7 +89,7 @@ def cmd_status_index_worktree(repo: VesRepository, index: Optional[VesIndex]) ->
     # We now traverse the index, and compare real files with the cached
     # versions.
 
-    if index is None or index.entries is None:
+    if index is None:
         # If no index, all files in worktree are untracked
         print()
         print("Untracked files:")

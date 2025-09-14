@@ -1,7 +1,7 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import ceil
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from src.core.repository import VesRepository, repo_file
 
@@ -68,29 +68,13 @@ class VesIndex:
         version: Index format version (should be 2 for compatibility)
         entries: List of VesIndexEntry objects representing tracked files
 
-    Usage:
-        # Read existing index
-        index = index_read(repo)
-
-        # Add new entry
-        entry = VesIndexEntry(...)
-        index.entries.append(entry)
-
-        # Write back to disk
-        index_write(repo, index)
-
     Note:
-        The entries list is automatically initialized as empty if None.
+        The entries list is automatically initialized as empty list for each instance.
         Entries should be kept sorted by file path for optimal performance.
     """
 
     version: int = 2
-    entries: Optional[List[VesIndexEntry]] = None
-
-    def __post_init__(self):
-        """Initialize the entries list if not provided."""
-        if self.entries is None:
-            self.entries = []
+    entries: List[VesIndexEntry] = field(default_factory=list)
 
 
 def index_read(repo: VesRepository) -> VesIndex:
@@ -249,10 +233,6 @@ def index_write(repo: VesRepository, index: VesIndex) -> None:
     index_file = repo_file(repo, "index")
     if index_file is None:
         raise Exception("No index file in this repository.")
-
-    # Ensure entries list is not None
-    if index.entries is None:
-        index.entries = []
 
     with open(index_file, "wb") as f:
 

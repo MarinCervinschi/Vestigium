@@ -39,12 +39,6 @@ def cmd_ls_files(args: Namespace) -> None:
     if index is None:
         return
 
-    assert index.entries is not None
-    if args.verbose:
-        print(
-            f"Index file format v{index.version}, containing {len(index.entries)} entries."
-        )
-
     for e in index.entries:
         print(e.name)
         if args.verbose:

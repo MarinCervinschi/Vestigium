@@ -83,8 +83,6 @@ def add(
     # @FIXME, though: we could just move the index through
     # commands instead of reading and writing it over again.
     index = index_read(repo)
-    if index.entries is None:
-        index.entries = list()
 
     # Process each file: compute hash and create index entry
     for abspath, relpath in clean_paths:
