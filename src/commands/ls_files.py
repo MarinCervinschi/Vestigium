@@ -36,8 +36,6 @@ def cmd_ls_files(args: Namespace) -> None:
     if repo is None:
         return
     index = index_read(repo)
-    if index is None:
-        return
 
     for e in index.entries:
         print(e.name)
