@@ -24,6 +24,20 @@ Vestigium is my educational implementation that focuses on **Git's local operati
 
 **My Goal**: Demystify Git's "magic" by building a compatible implementation that reveals the elegant simplicity behind version control.
 
+## 📚 Technical Documentation
+
+For a deep dive into Git's internal concepts and how they're implemented in Vestigium, check out the **comprehensive technical documentation**:
+
+**📖 [Complete Documentation Guide](docs/README.md)**
+
+This documentation covers:
+- **Core Concepts**: Repository structure, object system, staging area, references
+- **Essential Operations**: Tree operations, file filtering, status computation  
+- **Supporting Systems**: Configuration, text parsing, utility infrastructure
+- **Practical Usage**: Complete command reference with examples
+
+The docs explain **why Git works the way it does** rather than just how to use it - perfect for understanding the fundamental concepts that make version control possible.
+
 ## Repository Overview
 
 This is how I've organized my codebase to mirror Git's internal structure:
