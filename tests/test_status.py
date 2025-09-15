@@ -636,3 +636,218 @@ class TestStatusCommand:
         assert "cache.tmp" not in output
         assert "temp/data.txt" not in output
         assert "temp/" not in output
+
+    def test_status_with_symlink_modified(self, temp_dir, clean_env, capsys):
+        """Test status with a symlink that has been modified.
+
+        This test covers the symlink handling code in cmd_status_index_worktree,
+        specifically lines 102-105 that check for symlink modifications.
+        """
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+        os.chdir(repo_path)
+
+        # Create a target file for the symlink
+        target_file = repo_path / "target.txt"
+        target_file.write_text("Original target content")
+
+        # Create initial symlink
+        symlink_path = repo_path / "link.txt"
+        symlink_path.symlink_to("target.txt")
+
+        # Add symlink to index
+        add_args = Namespace(path=["link.txt"])
+        cmd_add(add_args)
+
+        # Make first commit
+        commit_args = Namespace(message="Add symlink")
+        cmd_commit(commit_args)
+
+        # Create a new target file
+        new_target_file = repo_path / "new_target.txt"
+        new_target_file.write_text("New target content")
+
+        # Modify the symlink to point to a different target
+        # We need to remove and recreate the symlink to change its target
+        symlink_path.unlink()
+
+        # Wait a bit to ensure different timestamp for metadata comparison
+        import time
+
+        time.sleep(0.1)
+
+        symlink_path.symlink_to("new_target.txt")
+
+        # Test status - should detect the symlink as modified
+        args = Namespace()
+        cmd_status(args)
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        # Should show symlink as modified
+        assert "Changes not staged for commit:" in output
+        assert "modified: link.txt" in output
+
+    def test_status_with_symlink_unchanged(self, temp_dir, clean_env, capsys):
+        """Test status with a symlink that has not been modified.
+
+        This test ensures symlinks are properly handled and not falsely reported
+        as modified when they point to the same target.
+        """
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+        os.chdir(repo_path)
+
+        # Create a target file for the symlink
+        target_file = repo_path / "target.txt"
+        target_file.write_text("Target content")
+
+        # Create symlink
+        symlink_path = repo_path / "link.txt"
+        symlink_path.symlink_to("target.txt")
+
+        # Add symlink to index
+        add_args = Namespace(path=["link.txt"])
+        cmd_add(add_args)
+
+        # Make first commit
+        commit_args = Namespace(message="Add symlink")
+        cmd_commit(commit_args)
+
+        # Test status - symlink should not be reported as modified
+        args = Namespace()
+        cmd_status(args)
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        # Should not show any modifications for the symlink
+        # The symlink should not appear in the "Changes not staged for commit" section
+        if "Changes not staged for commit:" in output:
+            # If this section exists, link.txt should not be in it
+            lines = output.split("\n")
+            changes_section = False
+            untracked_section = False
+
+            for line in lines:
+                if "Changes not staged for commit:" in line:
+                    changes_section = True
+                    untracked_section = False
+                elif "Untracked files:" in line:
+                    changes_section = False
+                    untracked_section = True
+                elif changes_section and "link.txt" in line:
+                    pytest.fail("Unchanged symlink should not appear as modified")
+
+    def test_status_with_symlink_target_modified(self, temp_dir, clean_env, capsys):
+        """Test status when symlink target content is modified.
+
+        This test verifies the behavior when the content of a symlink's target
+        is modified. The symlink may be reported as modified due to metadata changes
+        or depending on how the system tracks symlinks.
+        """
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+        os.chdir(repo_path)
+
+        # Create a target file for the symlink
+        target_file = repo_path / "target.txt"
+        target_file.write_text("Original content")
+
+        # Create symlink
+        symlink_path = repo_path / "link.txt"
+        symlink_path.symlink_to("target.txt")
+
+        # Add both symlink and target to index
+        add_args = Namespace(path=["link.txt", "target.txt"])
+        cmd_add(add_args)
+
+        # Make first commit
+        commit_args = Namespace(message="Add symlink and target")
+        cmd_commit(commit_args)
+
+        # Modify the target file content
+        import time
+
+        time.sleep(0.1)  # Ensure different timestamp
+        target_file.write_text("Modified content")
+
+        # Test status
+        args = Namespace()
+        cmd_status(args)
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        # Should show target file as modified
+        assert "Changes not staged for commit:" in output
+        assert "modified: target.txt" in output
+
+        # The symlink behavior may vary - it could be reported as modified
+        # due to metadata changes. We just verify the test runs without error
+        # and that the target file is properly detected as modified.
+        assert "target.txt" in output
+
+    def test_status_with_symlink_content_hash_check(self, temp_dir, clean_env, capsys):
+        """Test that symlink modifications are properly detected via content hash.
+
+        This test specifically covers the symlink handling code in lines 102-105
+        of status.py that uses object_hash to compare symlink content.
+        """
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+        os.chdir(repo_path)
+
+        # Create initial symlink target
+        target1 = repo_path / "target1.txt"
+        target1.write_text("Target 1 content")
+
+        # Create symlink pointing to target1
+        symlink_path = repo_path / "link.txt"
+        symlink_path.symlink_to("target1.txt")
+
+        # Add symlink to index
+        add_args = Namespace(path=["link.txt"])
+        cmd_add(add_args)
+
+        # Make first commit
+        commit_args = Namespace(message="Add symlink")
+        cmd_commit(commit_args)
+
+        # Create second target
+        target2 = repo_path / "target2.txt"
+        target2.write_text("Target 2 content")
+
+        # Change symlink to point to different target
+        # This will trigger the symlink content hash check in the code
+        symlink_path.unlink()
+
+        import time
+
+        time.sleep(0.1)  # Ensure different timestamp
+
+        symlink_path.symlink_to("target2.txt")
+
+        # Test status - should detect symlink as modified
+        args = Namespace()
+        cmd_status(args)
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        # Should show symlink as modified since it points to a different target
+        assert "Changes not staged for commit:" in output
+        assert "modified: link.txt" in output

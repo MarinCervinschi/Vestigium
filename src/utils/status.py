@@ -98,14 +98,22 @@ def cmd_status_index_worktree(repo: VesRepository, index: VesIndex) -> None:
             mtime_ns = entry.mtime[0] * 10**9 + entry.mtime[1]
             if (stat.st_ctime_ns != ctime_ns) or (stat.st_mtime_ns != mtime_ns):
                 # If different, deep compare.
-                # @FIXME This *will* crash on symlinks to dir.
-                with open(full_path, "rb") as fd:
-                    new_sha = object_hash(fd, b"blob", None)
-                    # If the hashes are the same, the files are actually the same.
-                    same = entry.sha == new_sha
+                if os.path.islink(full_path):
+                    link_target = os.readlink(full_path)
+                    import io
 
-                    if not same:
-                        print("  modified:", entry.name)
+                    new_sha = object_hash(
+                        io.BytesIO(link_target.encode()), b"blob", None
+                    )
+                else:
+                    with open(full_path, "rb") as fd:
+                        new_sha = object_hash(fd, b"blob", None)
+
+                # If the hashes are the same, the files are actually the same.
+                same = entry.sha == new_sha
+
+                if not same:
+                    print("  modified:", entry.name)
 
         if entry.name in all_files:
             all_files.remove(entry.name)
