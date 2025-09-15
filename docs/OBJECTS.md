@@ -1,5 +1,20 @@
 # Object System - Git's Core Data Model
 
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Repository](REPOSITORY.md) | **📖 Next**: [Index](INDEX.md) | **🔗 Related**: [Refs](REFS.md), [Tree](TREE.md)
+
+## 📋 Table of Contents
+
+- [🎯 Introduction](#-introduction)
+- [🏗️ The Four Object Types](#️-the-four-object-types)
+- [🔄 Object Storage and Retrieval](#-object-storage-and-retrieval)
+- [🕵️ Object Resolution System](#️-object-resolution-system)
+- [🎯 Content-Addressable Storage](#-content-addressable-storage)
+- [🔗 Object Graph Relationships](#-object-graph-relationships)
+- [🚀 Role in Git Workflow](#-role-in-git-workflow)
+- [🎓 Design Insights](#-design-insights)
+
+---
+
 ## 🎯 Introduction
 
 The **object system** is Git's fundamental data storage mechanism. Everything in Git - files, directories, commits, tags - is stored as an object. This document explains how Vestigium implements Git's object model and how objects flow through the version control lifecycle.
@@ -215,3 +230,7 @@ Traditional filesystems store files by name/path. Git stores content by hash, wi
 - **Distributed consistency**: Objects with same SHA are identical everywhere
 
 The object system transforms version control from "tracking file changes" to "managing content graphs" - a fundamentally more powerful abstraction.
+
+---
+
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Repository](REPOSITORY.md) | **📖 Next**: [Index](INDEX.md) | **🔗 Related**: [Refs](REFS.md), [Tree](TREE.md)

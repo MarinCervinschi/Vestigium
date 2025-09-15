@@ -1,5 +1,19 @@
 # Index System - Git's Staging Area
 
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Objects](OBJECTS.md) | **📖 Next**: [Refs](REFS.md) | **🔗 Related**: [Repository](REPOSITORY.md), [Tree](TREE.md)
+
+## 📋 Table of Contents
+
+- [🎯 Introduction](#-introduction)
+- [🏗️ What is the Index?](#️-what-is-the-index)
+- [📊 Index Entry Structure](#-index-entry-structure)
+- [🔄 Index Binary Format](#-index-binary-format)
+- [🚀 Role in Git Workflow](#-role-in-git-workflow)
+- [🎯 Advanced Index Features](#-advanced-index-features)
+- [🎓 Design Insights](#-design-insights)
+
+---
+
 ## 🎯 Introduction
 
 The **index** (also called "staging area") is Git's intermediate layer between the working directory and the repository. It's one of Git's most distinctive features and the key to understanding how Git prepares commits. This document explains how Vestigium implements Git's index system and why it's crucial to Git's workflow.
@@ -228,3 +242,7 @@ This separation enables:
 - **Rename detection**: Content hash unchanged, path changed
 
 The index is Git's **preparation workspace** - the place where commits are carefully crafted before being made permanent. It transforms Git from a simple "save snapshot" system into a sophisticated "prepare and commit" workflow that gives developers precise control over their version history.
+
+---
+
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Objects](OBJECTS.md) | **📖 Next**: [Refs](REFS.md) | **🔗 Related**: [Repository](REPOSITORY.md), [Tree](TREE.md)

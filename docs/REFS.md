@@ -1,5 +1,20 @@
 # References System - Git's Pointer Management
 
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Index](INDEX.md) | **📖 Next**: [Tree](TREE.md) | **🔗 Related**: [Objects](OBJECTS.md), [Repository](REPOSITORY.md)
+
+## 📋 Table of Contents
+
+- [🎯 Introduction](#-introduction)
+- [🏗️ What Are References?](#️-what-are-references)
+- [🔗 Direct vs Symbolic References](#-direct-vs-symbolic-references)
+- [🚀 Reference Resolution Process](#-reference-resolution-process)
+- [📂 Reference Hierarchy](#-reference-hierarchy)
+- [🌟 Special References](#-special-references)
+- [🔄 Role in Git Workflow](#-role-in-git-workflow)
+- [🎓 Design Insights](#-design-insights)
+
+---
+
 ## 🎯 Introduction
 
 The **reference system** is Git's mechanism for creating human-readable names that point to commits. Without references, you'd need to remember 40-character SHA hashes for everything. This document explains how Vestigium implements Git's reference model and how refs enable the branch and tag system.
@@ -243,3 +258,7 @@ This separation allows Git to:
 - **Maintain integrity**: Object corruption impossible, ref corruption recoverable
 
 The reference system transforms Git from a "content database" into a "navigable version control system" by adding the human interface layer on top of the immutable object store.
+
+---
+
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Index](INDEX.md) | **📖 Next**: [Tree](TREE.md) | **🔗 Related**: [Objects](OBJECTS.md), [Repository](REPOSITORY.md)

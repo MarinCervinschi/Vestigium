@@ -1,5 +1,19 @@
 # Repository Architecture
 
+> **📍 Navigation**: [📚 Docs Home](README.md) | **📖 Next**: [Objects](OBJECTS.md) | **🔗 Related**: [Index](INDEX.md), [Refs](REFS.md)
+
+## 📋 Table of Contents
+
+- [🎯 Introduction](#-introduction)
+- [🏗️ Git's Repository Concept](#️-gits-repository-concept)
+- [🔧 VesRepository Implementation](#-vesrepository-implementation)  
+- [🚀 Repository Initialization](#-repository-initialization)
+- [🔍 Repository Discovery](#-repository-discovery)
+- [🔄 Role in Git Workflow](#-role-in-git-workflow)
+- [🎓 Design Insights](#-design-insights)
+
+---
+
 ## 🎯 Introduction
 
 The **repository** is the foundation of every version control system. In Git, everything revolves around the `.git` directory - in Vestigium this is called `.ves` to distinguish it from the original. This document explains the core concepts behind Git's repository structure and how they enable version control operations.
@@ -148,3 +162,7 @@ The repository integrates with other Git components:
 - **Configuration**: Repository settings affect all operations
 
 The repository is the **coordination point** where all Git concepts come together to create a coherent version control system.
+
+---
+
+> **📍 Navigation**: [📚 Docs Home](README.md) | **📖 Next**: [Objects](OBJECTS.md) | **🔗 Related**: [Index](INDEX.md), [Refs](REFS.md)

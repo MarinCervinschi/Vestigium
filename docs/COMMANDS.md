@@ -1,5 +1,9 @@
 # Vestigium Commands Guide
 
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Ignore](IGNORE.md) | **� Related**: [Repository](REPOSITORY.md), [Objects](OBJECTS.md), [Index](INDEX.md), [Refs](REFS.md), [Tree](TREE.md)
+
+---
+
 A quick guide to the available commands in Vestigium, the educational version control system.
 
 ## 📋 Table of Contents
@@ -491,3 +495,7 @@ Vestigium uses formats compatible with Git for:
 - SHA-1 hashing
 
 This allows limited interoperability with standard Git tools for inspection and debugging.
+
+---
+
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Ignore](IGNORE.md) | **🔗 Related**: [Repository](REPOSITORY.md), [Objects](OBJECTS.md), [Index](INDEX.md), [Refs](REFS.md), [Tree](TREE.md)

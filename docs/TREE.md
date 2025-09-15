@@ -1,5 +1,17 @@
 # Tree Operations - Git's Directory Structure
 
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Refs](REFS.md) | **📖 Next**: [Ignore](IGNORE.md) | **🔗 Related**: [Objects](OBJECTS.md), [Index](INDEX.md)
+
+## 📋 Table of Contents
+
+- [🎯 Introduction](#-introduction)
+- [🌳 Tree Structure Fundamentals](#-tree-structure-fundamentals)
+- [🔄 Key Tree Operations](#-key-tree-operations)
+- [🎯 Role in Git Workflow](#-role-in-git-workflow)
+- [🎓 Design Insights](#-design-insights)
+
+---
+
 ## 🎯 Introduction
 
 **Tree operations** are essential utilities for manipulating Git's directory structure representation. While the core `VesTree` object handles basic tree storage, these utilities provide the complex algorithms needed to convert between different representations: index entries to tree objects, tree objects to filesystem directories, and tree hierarchies to flat dictionaries.
@@ -230,3 +242,7 @@ Trees represent **directory snapshots** at specific points in time. The utilitie
 3. **Restore snapshots**: Tree → Filesystem (during checkout)
 
 This abstraction is fundamental to Git's model: **commits are snapshots**, and snapshots are represented as tree hierarchies. The utilities provide the essential algorithms for working with these hierarchical snapshots in practical Git operations.
+
+---
+
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Refs](REFS.md) | **📖 Next**: [Ignore](IGNORE.md) | **🔗 Related**: [Objects](OBJECTS.md), [Index](INDEX.md)

@@ -1,5 +1,19 @@
 # Ignore System - Git's File Filtering
 
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Tree](TREE.md) | **� Next**: [Commands](COMMANDS.md) | **�🔗 Related**: [Index](INDEX.md), [Repository](REPOSITORY.md)
+
+## 📋 Table of Contents
+
+- [🎯 Introduction](#-introduction)
+- [🚫 The Ignore Problem](#-the-ignore-problem)
+- [🔧 Ignore Rule Sources](#-ignore-rule-sources)
+- [📝 Ignore Rule Syntax](#-ignore-rule-syntax)
+- [🔍 Rule Evaluation Algorithm](#-rule-evaluation-algorithm)
+- [🔄 Role in Git Workflow](#-role-in-git-workflow)
+- [🎓 Design Insights](#-design-insights)
+
+---
+
 ## 🎯 Introduction
 
 The **ignore system** is Git's mechanism for excluding files from version control. It solves a fundamental problem: not all files in a project directory should be tracked. Build artifacts, temporary files, personal configurations, and other generated content should be excluded. This document explains how Vestigium implements Git's ignore functionality and why it's essential for clean version control.
@@ -293,3 +307,7 @@ This abstraction enables:
 - **Flexible control**: Fine-grained inclusion/exclusion rules
 
 The ignore system is essential for **practical version control** - it makes Git usable for real projects by filtering out the noise and focusing on what actually matters for the project's history.
+
+---
+
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Tree](TREE.md) | **📖 Next**: [Commands](COMMANDS.md) | **🔗 Related**: [Index](INDEX.md), [Repository](REPOSITORY.md)
