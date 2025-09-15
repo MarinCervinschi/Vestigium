@@ -5,8 +5,8 @@
 ## 📋 Table of Contents
 
 - [🎯 Introduction](#-introduction)
-- [🏗️ Git's Repository Concept](#️-gits-repository-concept)
-- [🔧 VesRepository Implementation](#-vesrepository-implementation)  
+- [🏗️ Git's Repository Concept](#-gits-repository-concept)
+- [🔧 VesRepository Implementation](#-vesrepository-implementation)
 - [🚀 Repository Initialization](#-repository-initialization)
 - [🔍 Repository Discovery](#-repository-discovery)
 - [🔄 Role in Git Workflow](#-role-in-git-workflow)
@@ -31,7 +31,7 @@ Git's brilliance lies in treating **everything as data stored in a database**. Y
 ├── objects/             # Content-addressable object store
 ├── refs/                # Named pointers to important commits
 │   ├── heads/          # Branch pointers
-│   └── tags/           # Tag pointers  
+│   └── tags/           # Tag pointers
 ├── HEAD                # Current position indicator
 ├── config              # Repository settings
 └── index               # Staging area (when present)
@@ -51,7 +51,7 @@ Git's brilliance lies in treating **everything as data stored in a database**. Y
 Git operates on three main areas:
 
 1. **Working Directory** (worktree): Where you edit files
-2. **Staging Area** (index): Where you prepare commits  
+2. **Staging Area** (index): Where you prepare commits
 3. **Repository** (.ves): Where commits are permanently stored
 
 The repository serves as the **permanent storage layer** - once something is committed here, it becomes part of the project's immutable history.
@@ -61,7 +61,7 @@ The repository serves as the **permanent storage layer** - once something is com
 Every Git operation ultimately reads from or writes to the repository:
 
 - **`git add`** → Prepares objects for the repository
-- **`git commit`** → Writes new objects to the repository  
+- **`git commit`** → Writes new objects to the repository
 - **`git checkout`** → Reads objects from the repository
 - **`git merge`** → Combines repository objects (not shown in Vestigium yet)
 - **`git log`** → Traverses repository history
@@ -90,7 +90,7 @@ def repo_create(path: str) -> VesRepository:
     assert repo_dir(repo, "objects", mkdir=True)      # Object database
     assert repo_dir(repo, "refs", "heads", mkdir=True) # Branch storage
     assert repo_dir(repo, "refs", "tags", mkdir=True)  # Tag storage
-    
+
     # Initialize HEAD to point to master branch
     with open(head_path, "w") as f:
         f.write("ref: refs/heads/master\n")
@@ -107,16 +107,16 @@ One of Git's most elegant features: **commands work from anywhere within a proje
 ```python
 def repo_find(path: str = ".", required: bool = True) -> Optional[VesRepository]:
     path = os.path.realpath(path)
-    
+
     # Look for .ves in current directory
     if os.path.isdir(os.path.join(path, ".ves")):
         return VesRepository(path)
-    
+
     # Search upward through parent directories
     parent = os.path.realpath(os.path.join(path, ".."))
     if parent == path:  # Reached filesystem root
         return None if not required else raise Exception("No ves directory.")
-    
+
     return repo_find(parent, required)  # Recursive search
 ```
 
@@ -157,7 +157,7 @@ The repository provides the **persistent layer** that makes version control poss
 The repository integrates with other Git components:
 
 - **Index**: Uses repository to validate and store staged changes
-- **Objects**: Stored within repository's object database  
+- **Objects**: Stored within repository's object database
 - **References**: Managed within repository's refs structure
 - **Configuration**: Repository settings affect all operations
 

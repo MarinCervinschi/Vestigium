@@ -5,7 +5,7 @@
 ## 📋 Table of Contents
 
 - [🎯 Introduction](#-introduction)
-- [🏗️ What is the Index?](#️-what-is-the-index)
+- [🏗️ What is the Index?](#-what-is-the-index)
 - [📊 Index Entry Structure](#-index-entry-structure)
 - [🔄 Index Binary Format](#-index-binary-format)
 - [🚀 Role in Git Workflow](#-role-in-git-workflow)

@@ -6,12 +6,12 @@ A quick guide to the available commands in Vestigium, the educational version co
 
 ## 📋 Table of Contents
 
-- [Basic Commands](#basic-commands)
-- [Index Management](#index-management)
-- [Viewing and Navigation](#viewing-and-navigation)
-- [Objects and Hashing](#objects-and-hashing)
-- [References and Tags](#references-and-tags)
-- [Utilities and Debug](#utilities-and-debug)
+- [Basic Commands](#-basic-commands)
+- [Index Management](#-index-management)
+- [Viewing and Navigation](#-viewing-and-navigation)
+- [Objects and Hashing](#-objects-and-hashing)
+- [References and Tags](#-references-and-tags)
+- [Utilities and Debug](#-utilities-and-debug)
 
 ---
 

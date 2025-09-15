@@ -5,9 +5,9 @@
 ## 📋 Table of Contents
 
 - [🎯 Introduction](#-introduction)
-- [🏗️ The Four Object Types](#️-the-four-object-types)
+- [🏗️ The Four Object Types](#-the-four-object-types)
 - [🔄 Object Storage and Retrieval](#-object-storage-and-retrieval)
-- [🕵️ Object Resolution System](#️-object-resolution-system)
+- [🕵️ Object Resolution System](#-object-resolution-system)
 - [🎯 Content-Addressable Storage](#-content-addressable-storage)
 - [🔗 Object Graph Relationships](#-object-graph-relationships)
 - [🚀 Role in Git Workflow](#-role-in-git-workflow)

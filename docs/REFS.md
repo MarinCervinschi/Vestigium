@@ -5,7 +5,7 @@
 ## 📋 Table of Contents
 
 - [🎯 Introduction](#-introduction)
-- [🏗️ What Are References?](#️-what-are-references)
+- [🏗️ What Are References?](#-what-are-references)
 - [🔗 Direct vs Symbolic References](#-direct-vs-symbolic-references)
 - [🚀 Reference Resolution Process](#-reference-resolution-process)
 - [📂 Reference Hierarchy](#-reference-hierarchy)
