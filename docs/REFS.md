@@ -168,7 +168,7 @@ This happens when checking out:
 
 ## 🔄 Role in Git Workflow
 
-### Branch Creation
+### Branch Creation (not in Vestigium yet)
 ```bash
 ves checkout -b feature-login
 ```
