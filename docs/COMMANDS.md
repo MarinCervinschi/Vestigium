@@ -1,8 +1,6 @@
 # Vestigium Commands Guide
 
-> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Ignore](IGNORE.md) | **� Related**: [Repository](REPOSITORY.md), [Objects](OBJECTS.md), [Index](INDEX.md), [Refs](REFS.md), [Tree](TREE.md)
-
----
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Utilities](UTILITIES.md) | **🔗 Related**: [Repository](REPOSITORY.md), [Objects](OBJECTS.md), [Index](INDEX.md), [Refs](REFS.md), [Tree](TREE.md), [Ignore](IGNORE.md)
 
 A quick guide to the available commands in Vestigium, the educational version control system.
 
@@ -188,7 +186,7 @@ ves log abc123             # History from specific commit
 ves log | dot -Tpng > history.png  # Generate image
 ```
 
->**Notes**: Or paste the output into [GraphvizOnline](https://dreampuf.github.io/GraphvizOnline) to visualize directly.
+> **Notes**: Or paste the output into [GraphvizOnline](https://dreampuf.github.io/GraphvizOnline) to visualize directly.
 
 ### `checkout` - Extract Commit
 
@@ -498,4 +496,4 @@ This allows limited interoperability with standard Git tools for inspection and 
 
 ---
 
-> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Ignore](IGNORE.md) | **🔗 Related**: [Repository](REPOSITORY.md), [Objects](OBJECTS.md), [Index](INDEX.md), [Refs](REFS.md), [Tree](TREE.md)
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Ignore](IGNORE.md) | **� Next**: [Utilities](UTILITIES.md) | **�🔗 Related**: [Repository](REPOSITORY.md), [Objects](OBJECTS.md), [Index](INDEX.md), [Refs](REFS.md), [Tree](TREE.md)

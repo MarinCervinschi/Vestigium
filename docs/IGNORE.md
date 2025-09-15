@@ -1,6 +1,7 @@
 # Ignore System - Git's File Filtering
 
-> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Tree](TREE.md) | **� Next**: [Commands](COMMANDS.md) | **�🔗 Related**: [Index](INDEX.md), [Repository](REPOSITORY.md)
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Tree](TREE.md) | **📖 Next**: [Utilities](UTILITIES.md) | **🔗 Related**: [Index](INDEX.md), [Repository](REPOSITORY.md), [Commands](COMMANDS.md)
+
 
 ## 📋 Table of Contents
 
@@ -310,4 +311,4 @@ The ignore system is essential for **practical version control** - it makes Git 
 
 ---
 
-> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Tree](TREE.md) | **📖 Next**: [Commands](COMMANDS.md) | **🔗 Related**: [Index](INDEX.md), [Repository](REPOSITORY.md)
+> **📍 Navigation**: [📚 Docs Home](README.md) | **⬅️ Prev**: [Tree](TREE.md) | **📖 Next**: [Utilities](UTILITIES.md) | **🔗 Related**: [Index](INDEX.md), [Repository](REPOSITORY.md), [Commands](COMMANDS.md)

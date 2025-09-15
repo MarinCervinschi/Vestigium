@@ -42,8 +42,14 @@ These documents explain the critical algorithms that make Git work:
    - Pattern matching and rule precedence
    - Making Git practical for real projects
 
+### 🔧 **Supporting Infrastructure** (Under the Hood)
+7. **[UTILITIES.md](UTILITIES.md)** - Essential utility systems
+   - KVLM format for structured text parsing
+   - Configuration management and user settings
+   - Status computation algorithms
+
 ### 📖 **Commands Reference** (Practical Usage)
-7. **[COMMANDS.md](COMMANDS.md)** - Complete command reference
+8. **[COMMANDS.md](COMMANDS.md)** - Complete command reference
    - All Vestigium commands with syntax and examples
    - Organized by functional categories
    - Typical workflows and usage patterns
@@ -83,6 +89,7 @@ Read all documents in the suggested order for comprehensive Git internals knowle
 - **Structure** → [REPOSITORY.md](REPOSITORY.md)
 - **Operations** → [TREE.md](TREE.md)
 - **Filtering** → [IGNORE.md](IGNORE.md)
+- **Infrastructure** → [UTILITIES.md](UTILITIES.md)
 
 ### **By Workflow Stage**
 - **Setup** → [REPOSITORY.md](REPOSITORY.md)
