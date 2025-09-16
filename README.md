@@ -31,8 +31,9 @@ For a deep dive into Git's internal concepts and how they're implemented in Vest
 **📖 [Complete Documentation Guide](docs/README.md)**
 
 This documentation covers:
+
 - **Core Concepts**: Repository structure, object system, staging area, references
-- **Essential Operations**: Tree operations, file filtering, status computation  
+- **Essential Operations**: Tree operations, file filtering, status computation
 - **Supporting Systems**: Configuration, text parsing, utility infrastructure
 - **Practical Usage**: Complete command reference with examples
 
@@ -100,9 +101,6 @@ chmod +x ./ves
 For a clean, isolated environment:
 
 ```bash
-# Run tests
-docker compose run --rm vestigium-test
-
 # Start development environment
 docker compose run --rm vestigium-dev
 ```
@@ -165,28 +163,57 @@ black src/ tests/ && isort src/ tests/ && mypy src/
 
 ### Testing
 
-#### Docker Testing (Recommended)
+#### Unit Tests (Docker - Recommended)
 
 ```bash
-# Run tests in clean Docker environment
+# Run only unit tests (excluding stress tests)
+docker compose run --rm vestigium-unit
+
+# Run all tests (unit + stress tests)
 docker compose run --rm vestigium-test
 
 # Development environment with all tools available
 docker compose run --rm vestigium-dev
 ```
 
+#### Stress/Performance Tests
+
+For performance testing with large files and numerous files:
+
+```bash
+# Run stress tests in Docker
+docker compose run --rm vestigium-stress
+```
+
+The stress tests evaluate:
+
+- **Large file performance**: Files from 1MB to 50MB
+- **Many files performance**: From 50 to 1000+ files
+- **Mixed operations**: Complex scenarios with various file types
+- **Memory usage**: Monitoring resource consumption during operations
+
+>**Note**: For more details, see the [Stress Tests Documentation](docs/STRESS_TESTS.md).
+
 #### Local Testing
 
 ```bash
-# Run tests locally
+# Run unit tests locally (excluding stress tests)
+pytest tests/ -v -m "not stress"
+
+# Run all tests locally (unit + stress)
 pytest tests/ -v
 
-# Run tests with coverage
-pytest --cov=src --cov-report=term-missing
+# Run tests with coverage (unit tests only)
+pytest --cov=src --cov-report=term-missing -m "not stress"
 
-# Generate HTML coverage report
-pytest --cov=src --cov-report=html
+# Generate HTML coverage report (unit tests only)
+pytest --cov=src --cov-report=html -m "not stress"
+
+# Run stress tests locally (not recommended - use Docker instead)
+pytest tests/stress/ -v -m stress
 ```
+
+**Note**: Stress tests create large temporary files and may consume significant system resources. Using Docker is strongly recommended for isolation and consistent results.
 
 ## License
 
