@@ -1,5 +1,6 @@
 import os
 from argparse import Namespace
+from io import BytesIO
 
 from src.commands.rm import rm
 from src.core.index import VesIndexEntry, index_read, index_write
@@ -58,18 +59,18 @@ def add(
         OSError: If file cannot be read or filesystem metadata cannot be accessed
 
     Note:
-        Files must exist and be regular files (not directories or symlinks).
+        Files must exist and be regular files or symlinks (not directories).
         The function automatically converts paths to be relative to the repository root.
+        Symlinks are stored as their target path, not the content of the target file.
     """
-    # Remove existing entries without deleting files
     rm(repo, paths, delete=False, skip_missing=True)
 
     # Validate paths and convert to (absolute, relative) pairs
     clean_paths = set()
     for path in paths:
         abspath = os.path.abspath(path)
-        if not os.path.isfile(abspath):
-            raise Exception(f"Not a file: {abspath}")
+        if not (os.path.isfile(abspath) or os.path.islink(abspath)):
+            raise Exception(f"Not a file or symlink: {abspath}")
         relpath = os.path.relpath(abspath, repo.worktree)
         clean_paths.add((abspath, relpath))
 
@@ -80,34 +81,42 @@ def add(
     # commands instead of reading and writing it over again.
     index = index_read(repo)
 
-    # Process each file: compute hash and create index entry
     for abspath, relpath in clean_paths:
-        with open(abspath, "rb") as fd:
-            sha = object_hash(fd, b"blob", repo)
+        if os.path.islink(abspath):
 
+            link_target = os.readlink(abspath)
+            sha = object_hash(BytesIO(link_target.encode("utf-8")), b"blob", repo)
+            stat = os.lstat(abspath)  # Use lstat to get symlink metadata, not target
+            mode_type = 0b1010  # Symlink mode (120000 in octal)
+            mode_perms = 0o000  # Symlinks don't have traditional permissions
+        else:
+            with open(abspath, "rb") as fd:
+                sha = object_hash(fd, b"blob", repo)
             stat = os.stat(abspath)
+            mode_type = 0b1000  # Regular file
+            mode_perms = 0o644  # Standard file permissions
 
-            # Extract timestamps with nanosecond precision
-            ctime_s = int(stat.st_ctime)
-            ctime_ns = stat.st_ctime_ns % 10**9
-            mtime_s = int(stat.st_mtime)
-            mtime_ns = stat.st_mtime_ns % 10**9
+        ctime_s = int(stat.st_ctime)
+        ctime_ns = stat.st_ctime_ns % 10**9
+        mtime_s = int(stat.st_mtime)
+        mtime_ns = stat.st_mtime_ns % 10**9
 
-            entry = VesIndexEntry(
-                ctime=(ctime_s, ctime_ns),
-                mtime=(mtime_s, mtime_ns),
-                dev=stat.st_dev,
-                ino=stat.st_ino,
-                mode_type=0b1000,  # Regular file
-                mode_perms=0o644,  # Standard file permissions
-                uid=stat.st_uid,
-                gid=stat.st_gid,
-                fsize=stat.st_size,
-                sha=sha,
-                flag_assume_valid=False,
-                flag_stage=0,
-                name=relpath,
-            )
-            index.entries.append(entry)
+        entry = VesIndexEntry(
+            ctime=(ctime_s, ctime_ns),
+            mtime=(mtime_s, mtime_ns),
+            dev=stat.st_dev,
+            ino=stat.st_ino,
+            mode_type=mode_type,
+            mode_perms=mode_perms,
+            uid=stat.st_uid,
+            gid=stat.st_gid,
+            fsize=stat.st_size,
+            sha=sha,
+            flag_assume_valid=False,
+            flag_stage=0,
+            name=relpath,
+        )
+
+        index.entries.append(entry)
 
     index_write(repo, index)

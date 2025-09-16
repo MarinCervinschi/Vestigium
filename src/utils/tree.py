@@ -146,9 +146,11 @@ def tree_checkout(repo: VesRepository, tree: "VesTree", path: str) -> None:
             tree_checkout(repo, obj, dest)
         elif obj.fmt == b"blob":
             assert isinstance(obj, VesBlob)
-            # @TODO Support symlinks (identified by mode 12****)
-            with open(dest, "wb") as f:
-                f.write(obj.blobdata)
+            if item.mode.startswith(b"12"):
+                os.symlink(obj.blobdata.decode("utf8"), dest)
+            else:
+                with open(dest, "wb") as f:
+                    f.write(obj.blobdata)
 
 
 def tree_to_dict(repo: VesRepository, ref: str, prefix: str = "") -> dict[str, str]:
