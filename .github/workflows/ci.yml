@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run tests with Docker Compose
+      - name: Run all tests with Docker Compose
         run: docker compose run --rm vestigium-test
 
       - name: Upload coverage to Codecov (optional)
