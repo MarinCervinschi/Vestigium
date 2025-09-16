@@ -5,28 +5,28 @@ These tests evaluate how Vestigium performs when handling many files,
 testing operations like add, commit, and status with hundreds or thousands of files.
 """
 
-import time
-import tempfile
-import shutil
-from pathlib import Path
 import io
-from contextlib import redirect_stdout, redirect_stderr
-from typing import Dict, Any
+import shutil
+import tempfile
+import time
+from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict
 
 import pytest
 
 from src.commands.add import add
 from src.commands.commit import commit_create
 from src.commands.status import cmd_status
-from src.core.repository import repo_create
 from src.core.index import index_read
+from src.core.repository import repo_create
 from src.utils.tree import tree_from_index
 from tests.stress.test_utils import (
-    create_many_small_files,
-    create_deep_directory_structure,
     create_binary_files,
+    create_deep_directory_structure,
+    create_many_small_files,
 )
-from datetime import datetime
 
 
 @pytest.mark.stress
@@ -287,3 +287,111 @@ class TestManyFiles:
         assert (
             total_time < 20.0
         ), f"Combined operations took too long: {total_time:.2f}s"
+
+    @pytest.mark.stress
+    def test_large_repository_batch_performance(self):
+        """
+        Test IndexTransaction benefits with large repository.
+
+        This test creates a repository with many existing files (large index),
+        then performs batch operations. The large index makes I/O savings
+        from IndexTransaction clearly visible.
+        """
+
+        # Create initial 800 files to make index substantial
+        base_files = create_many_small_files(self.repo_dir / "base_files", 800, 512)
+        self.created_files.extend(base_files)
+
+        # Add them in batches to build up the index
+        batch_size = 100
+        for i in range(0, len(base_files), batch_size):
+            batch = base_files[i : i + batch_size]
+            relative_paths = [str(f.relative_to(self.repo_dir)) for f in batch]
+            add(self.repo, relative_paths)
+
+        # Verify large index
+        index = index_read(self.repo)
+
+        # Now test batch performance with this large index
+        test_files = create_many_small_files(self.repo_dir / "new_batch", 150, 256)
+        self.created_files.extend(test_files)
+        test_relative = [str(f.relative_to(self.repo_dir)) for f in test_files]
+
+        # Measure batch operation performance
+        metrics = self.measure_operation_time(add, self.repo, test_relative)
+
+        files_per_sec = len(test_relative) / metrics["execution_time"]
+
+        # With IndexTransaction, should maintain good performance even with large index
+        assert (
+            metrics["execution_time"] < 3.0
+        ), f"Batch too slow with large index: {metrics['execution_time']:.3f}s"
+        assert (
+            files_per_sec > 50
+        ), f"Low throughput with large index: {files_per_sec:.1f} files/s"
+
+        # Verify all files were added
+        final_index = index_read(self.repo)
+        expected_total = len(index.entries) + len(test_relative)
+        assert len(final_index.entries) >= expected_total
+
+    @pytest.mark.stress
+    def test_sequential_batch_operations_scaling(self):
+        """
+        Test IndexTransaction benefits with sequential batch operations.
+
+        This test performs multiple sequential batch operations, where
+        the I/O savings from IndexTransaction compound over multiple operations.
+        """
+        # Start with moderately large repository
+        initial_files = create_many_small_files(self.repo_dir / "initial", 300, 512)
+        self.created_files.extend(initial_files)
+        initial_relative = [str(f.relative_to(self.repo_dir)) for f in initial_files]
+
+        # Add initial files
+        add(self.repo, initial_relative)
+
+        # Perform 5 sequential batch operations
+        batch_results = []
+        total_start = time.time()
+
+        for batch_num in range(5):
+
+            # Create batch files
+            batch_files = create_many_small_files(
+                self.repo_dir / f"batch_{batch_num}", 80, 256
+            )
+            self.created_files.extend(batch_files)
+            batch_relative = [str(f.relative_to(self.repo_dir)) for f in batch_files]
+
+            # Measure this batch operation
+            batch_metrics = self.measure_operation_time(add, self.repo, batch_relative)
+
+            batch_results.append(
+                {
+                    "batch": batch_num + 1,
+                    "files": len(batch_relative),
+                    "time": batch_metrics["execution_time"],
+                    "files_per_sec": len(batch_relative)
+                    / batch_metrics["execution_time"],
+                }
+            )
+
+        total_time = time.time() - total_start
+        total_files = sum(r["files"] for r in batch_results)
+        avg_throughput = total_files / total_time
+
+        # Check performance consistency - IndexTransaction should prevent degradation
+        throughputs = [r["files_per_sec"] for r in batch_results]
+        min_throughput = min(throughputs)
+        max_throughput = max(throughputs)
+        degradation = (max_throughput - min_throughput) / max_throughput
+
+        # IndexTransaction should keep performance consistent across batches
+        assert (
+            avg_throughput > 100
+        ), f"Low average throughput: {avg_throughput:.1f} files/s"
+        assert (
+            degradation < 0.4
+        ), f"Performance degraded too much: {degradation*100:.1f}%"
+        assert total_time < 15.0, f"Sequential operations too slow: {total_time:.3f}s"

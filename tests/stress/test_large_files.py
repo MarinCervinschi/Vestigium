@@ -5,25 +5,25 @@ These tests evaluate how Vestigium performs when handling files of various sizes
 from 1MB to 100MB, testing operations like add, commit, status, and checkout.
 """
 
-import time
-import tempfile
-import shutil
 import io
+import shutil
+import tempfile
+import time
+from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime
 from pathlib import Path
-from contextlib import redirect_stdout, redirect_stderr
-from typing import Dict, Any
+from typing import Any, Dict
 
 import pytest
 
 from src.commands.add import add
 from src.commands.commit import commit_create
 from src.commands.status import cmd_status
-from src.core.repository import repo_create, VesRepository
 from src.core.index import index_read
+from src.core.repository import VesRepository, repo_create
 from src.utils.config import vesconfig_read, vesconfig_user_get
 from src.utils.tree import tree_from_index
-from tests.stress.test_utils import create_large_file, cleanup_test_files
-from datetime import datetime
+from tests.stress.test_utils import cleanup_test_files, create_large_file
 
 
 @pytest.mark.stress

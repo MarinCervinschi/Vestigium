@@ -621,9 +621,9 @@ class TestCheckoutCommand:
         cmd_commit(commit_args)
 
         # Create tree manually with both regular file and symlink
+        from src.core.index import index_read
         from src.core.objects import VesBlob, VesTree, object_write
         from src.utils.tree import VesTreeLeaf
-        from src.core.index import index_read
 
         repo = repo_find()
         assert repo is not None
