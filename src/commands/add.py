@@ -5,7 +5,7 @@ from io import BytesIO
 from src.core.index import VesIndexEntry
 from src.core.objects import object_hash
 from src.core.repository import VesRepository, repo_find
-from src.core.transaction import IndexTransaction, rm_in_memory
+from src.utils.transaction import IndexTransaction, rm_in_memory
 
 
 def cmd_add(args: Namespace) -> None:
