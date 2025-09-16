@@ -45,6 +45,11 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
+markers = [
+    "stress: marks tests as performance stress tests - test with large files and many files (run with 'docker compose run --rm vestigium-stress')",
+    "unit: marks tests as unit tests - fast tests for development (run with 'docker compose run --rm vestigium-unit')",
+    "slow: marks tests as slow running tests",
+]
 
 # Coverage configuration
 [tool.coverage.run]
