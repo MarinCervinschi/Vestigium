@@ -181,5 +181,5 @@ def cmd_status_index_worktree(repo: VesRepository, index: VesIndex) -> None:
     untracked_files = [f for f in all_files if not check_ignore(ignore, f)]
     displayed_entries = _optimize_untracked_display(untracked_files)
 
-    for entry in displayed_entries:
-        print(" ", entry)
+    for file_entry in displayed_entries:
+        print(" ", file_entry)

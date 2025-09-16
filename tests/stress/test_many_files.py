@@ -5,28 +5,28 @@ These tests evaluate how Vestigium performs when handling many files,
 testing operations like add, commit, and status with hundreds or thousands of files.
 """
 
-import time
-import tempfile
-import shutil
-from pathlib import Path
 import io
-from contextlib import redirect_stdout, redirect_stderr
-from typing import Dict, Any
+import shutil
+import tempfile
+import time
+from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict
 
 import pytest
 
 from src.commands.add import add
 from src.commands.commit import commit_create
 from src.commands.status import cmd_status
-from src.core.repository import repo_create
 from src.core.index import index_read
+from src.core.repository import repo_create
 from src.utils.tree import tree_from_index
 from tests.stress.test_utils import (
-    create_many_small_files,
-    create_deep_directory_structure,
     create_binary_files,
+    create_deep_directory_structure,
+    create_many_small_files,
 )
-from datetime import datetime
 
 
 @pytest.mark.stress

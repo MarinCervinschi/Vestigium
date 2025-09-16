@@ -296,13 +296,13 @@ class TestAddSymlinks:
 
         repo = repo_find()
         assert repo is not None
-        
+
         head_sha = object_find(repo, "HEAD")
         assert head_sha is not None
-        
+
         commit_obj = object_read(repo, head_sha)
         assert isinstance(commit_obj, VesCommit)
-        
+
         tree_sha = commit_obj.kvlm[b"tree"].decode("ascii")
         tree_obj = object_read(repo, tree_sha)
         assert isinstance(tree_obj, VesTree)

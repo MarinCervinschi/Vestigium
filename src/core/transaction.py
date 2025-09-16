@@ -1,4 +1,7 @@
 import os
+from types import TracebackType
+from typing import Optional
+
 from src.core.index import VesIndex, index_read, index_write
 from src.core.repository import VesRepository
 
@@ -82,7 +85,7 @@ class IndexTransaction:
             repo: The VesRepository instance to operate on
         """
         self.repo = repo
-        self.index = None
+        self.index: Optional[VesIndex] = None
 
     def __enter__(self) -> VesIndex:
         """
@@ -96,7 +99,12 @@ class IndexTransaction:
         self.index = index_read(self.repo)
         return self.index
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: Optional[type],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         """
         Exit the transaction context.
 

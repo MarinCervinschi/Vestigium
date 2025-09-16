@@ -5,13 +5,13 @@ This test runs last and provides a comprehensive performance summary
 that can be used to update documentation with current performance metrics.
 """
 
-import time
-import tempfile
-import shutil
 import io
-from contextlib import redirect_stdout, redirect_stderr
+import shutil
+import tempfile
+import time
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 import pytest
 
