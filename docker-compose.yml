@@ -15,7 +15,7 @@ services:
     working_dir: /app
     environment:
       - PYTHONPATH=/app
-    command: python -m pytest tests/stress/ -v -m stress --tb=short
+    command: python -m pytest tests/stress/ -v -m stress --tb=short -s
 
   vestigium-test:
     build: .
