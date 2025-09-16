@@ -1,4 +1,22 @@
 services:
+  vestigium-unit:
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app
+    command: python -m pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml -m "not stress"
+
+  vestigium-stress:
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app
+    command: python -m pytest tests/stress/ -v -m stress --tb=short
+
   vestigium-test:
     build: .
     volumes:
