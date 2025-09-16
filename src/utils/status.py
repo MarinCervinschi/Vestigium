@@ -1,11 +1,68 @@
 import os
-from typing import Optional
+from collections import defaultdict
+from typing import List
 
 from src.core.index import VesIndex
 from src.core.objects import object_hash
 from src.core.repository import VesRepository
 from src.utils.ignore import VesIgnore, check_ignore, vesignore_read
 from src.utils.tree import tree_to_dict
+
+
+def _optimize_untracked_display(untracked_files: List[str]) -> List[str]:
+    """
+    Optimize the display of untracked files by showing directory names
+    instead of individual files when an entire directory is untracked.
+
+    This mimics Git's behavior where if all files in a directory are untracked,
+    only the directory name followed by '/' is shown.
+
+    Args:
+        untracked_files: List of untracked file paths
+
+    Returns:
+        List of optimized entries to display (files or directories)
+    """
+    if not untracked_files:
+        return []
+
+    untracked_set = set(untracked_files)
+    dirs_to_files = defaultdict(list)
+    files_only = []
+
+    for file_path in untracked_files:
+        if os.path.sep in file_path:
+            dir_name = file_path.split(os.path.sep)[0]
+            dirs_to_files[dir_name].append(file_path)
+        else:
+            files_only.append(file_path)
+
+    result = []
+
+    result.extend(files_only)
+
+    # For each directory, check if we should show the directory or individual files
+    for dir_name, files_in_dir in dirs_to_files.items():
+        dir_path = dir_name
+        all_files_in_dir_untracked = True
+
+        if os.path.exists(dir_path) and os.path.isdir(dir_path):
+            for root, _, files in os.walk(dir_path):
+                for f in files:
+                    full_path = os.path.join(root, f)
+                    rel_path = os.path.relpath(full_path, ".")
+                    if rel_path not in untracked_set:
+                        all_files_in_dir_untracked = False
+                        break
+                if not all_files_in_dir_untracked:
+                    break
+
+        if all_files_in_dir_untracked and len(files_in_dir) > 0:
+            result.append(dir_name + os.path.sep)
+        else:
+            result.extend(files_in_dir)
+
+    return sorted(result)
 
 
 def cmd_status_head_index(repo: VesRepository, index: VesIndex) -> None:
@@ -69,7 +126,7 @@ def cmd_status_index_worktree(repo: VesRepository, index: VesIndex) -> None:
 
     vesdir_prefix = repo.vesdir + os.path.sep
 
-    all_files = list()
+    all_files: List[str] = list()
 
     # We begin by walking the filesystem
     for root, _, files in os.walk(repo.worktree, True):
@@ -121,8 +178,8 @@ def cmd_status_index_worktree(repo: VesRepository, index: VesIndex) -> None:
     print()
     print("Untracked files:")
 
-    for f in all_files:
-        # @TODO If a full directory is untracked, we should display
-        # its name without its contents.
-        if not check_ignore(ignore, f):
-            print(" ", f)
+    untracked_files = [f for f in all_files if not check_ignore(ignore, f)]
+    displayed_entries = _optimize_untracked_display(untracked_files)
+
+    for entry in displayed_entries:
+        print(" ", entry)

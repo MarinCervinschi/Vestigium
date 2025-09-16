@@ -851,3 +851,128 @@ class TestStatusCommand:
         # Should show symlink as modified since it points to a different target
         assert "Changes not staged for commit:" in output
         assert "modified: link.txt" in output
+
+    def test_status_untracked_directory_optimization(self, temp_dir, clean_env, capsys):
+        """Test that status optimizes display of untracked directories.
+
+        When an entire directory is untracked, it should show only the directory name
+        followed by '/' instead of listing all individual files in the directory.
+        This mimics Git's behavior for cleaner output.
+        """
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+        os.chdir(repo_path)
+
+        # Create a completely untracked directory with multiple files
+        untracked_dir = repo_path / "node_modules"
+        untracked_dir.mkdir()
+
+        # Add multiple files in the untracked directory
+        (untracked_dir / "package.json").write_text('{"name": "test"}')
+        (untracked_dir / "index.js").write_text("console.log('hello');")
+
+        # Add subdirectory with files
+        subdir = untracked_dir / "lib"
+        subdir.mkdir()
+        (subdir / "utils.js").write_text("module.exports = {};")
+        (subdir / "main.js").write_text("const utils = require('./utils');")
+
+        # Create a mixed directory (some tracked, some untracked)
+        mixed_dir = repo_path / "src"
+        mixed_dir.mkdir()
+
+        # Add a tracked file to src
+        tracked_file = mixed_dir / "tracked.py"
+        tracked_file.write_text("print('tracked')")
+        add_args = Namespace(path=["src/tracked.py"])
+        cmd_add(add_args)
+
+        # Add an untracked file to src
+        (mixed_dir / "untracked.py").write_text("print('untracked')")
+
+        # Create single untracked file in root
+        (repo_path / "readme.txt").write_text("readme content")
+
+        # Test status
+        args = Namespace()
+        cmd_status(args)
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        # Should show directory optimization for completely untracked directory
+        assert "Untracked files:" in output
+        assert "node_modules/" in output
+
+        # Should NOT show individual files from the untracked directory
+        assert "node_modules/package.json" not in output
+        assert "node_modules/index.js" not in output
+        assert "node_modules/lib/utils.js" not in output
+        assert "node_modules/lib/main.js" not in output
+
+        # Should show individual files from mixed directory (not optimize)
+        assert "src/untracked.py" in output
+
+        # Should NOT show the mixed directory as a whole (check for directory entry specifically)
+        lines = output.split("\n")
+        untracked_lines = []
+        in_untracked_section = False
+
+        for line in lines:
+            if "Untracked files:" in line:
+                in_untracked_section = True
+                continue
+            elif in_untracked_section and line.strip() == "":
+                break
+            elif in_untracked_section:
+                untracked_lines.append(line.strip())
+
+        # Check that "src/" is not listed as a standalone directory entry
+        directory_entries = [line for line in untracked_lines if line.endswith("/")]
+        src_directory_listed = any(
+            "src/" in entry and entry.strip() == "src/" for entry in directory_entries
+        )
+        assert (
+            not src_directory_listed
+        ), f"src/ should not be listed as directory, but found in: {directory_entries}"
+
+        # Should show single files in root
+        assert "readme.txt" in output
+
+    def test_status_empty_untracked_directory_not_shown(
+        self, temp_dir, clean_env, capsys
+    ):
+        """Test that empty untracked directories are not shown in status.
+
+        Git doesn't track empty directories, so they shouldn't appear in status output.
+        """
+        os.chdir(temp_dir)
+
+        repo_path = Path(temp_dir) / "test_repo"
+        init_args = Namespace(path=str(repo_path))
+        cmd_init(init_args)
+        os.chdir(repo_path)
+
+        # Create empty directory
+        empty_dir = repo_path / "empty_dir"
+        empty_dir.mkdir()
+
+        # Create directory with only subdirectories (no files)
+        nested_empty = repo_path / "nested"
+        nested_empty.mkdir()
+        (nested_empty / "empty_subdir").mkdir()
+
+        # Test status
+        args = Namespace()
+        cmd_status(args)
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        # Should not show empty directories
+        assert "empty_dir" not in output
+        assert "nested" not in output
+        assert "empty_subdir" not in output
