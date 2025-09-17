@@ -101,21 +101,21 @@ Based on the latest stress test runs, here are Vestigium's current performance m
 ============================================================
 
 📁 Large File Performance:
-    1MB files:   31.5 MB/s (0.03s)
-   10MB files:   30.1 MB/s (0.33s)
-   25MB files:   30.5 MB/s (0.82s)
-   50MB files:   29.7 MB/s (1.68s)
+    1MB files:   30.6 MB/s (0.03s)
+   10MB files:   31.8 MB/s (0.31s)
+   25MB files:   31.6 MB/s (0.79s)
+   50MB files:   31.2 MB/s (1.60s)
 
 📦 Many Files Performance:
-   100 files: 14,409 files/s (0.01s)
-   500 files: 16,997 files/s (0.03s)
+   100 files: 15,655 files/s (0.01s)
+   500 files: 17,382 files/s (0.03s)
 
-📊 Status Performance: 90.8 ops/s (0.01s)
+📊 Status Performance: 91.8 ops/s (0.01s)
 
 🎯 SUMMARY FOR DOCUMENTATION:
-   • Large files: 30.4 MB/s avg, 31.5 MB/s peak
-   • Many files: 15,703 files/s avg, 16,997 files/s peak
-   • Status ops: 90.8 ops/s
+   • Large files: 31.3 MB/s avg, 31.8 MB/s peak
+   • Many files: 16,519 files/s avg, 17,382 files/s peak
+   • Status ops: 91.8 ops/s
 ============================================================
 ```
 
@@ -129,7 +129,7 @@ The most computationally intensive operations in Vestigium are:
 - **Bottleneck**: SHA-1 computation on entire file content
 - **Testing approach**: Files from 1MB to 50MB to measure throughput degradation
 - **Good values**: > 25 MB/s for consistent performance
-- **Current performance**: **30.4 MB/s average** ✅ Excellent
+- **Current performance**: **31.3 MB/s average** ✅ Excellent
 
 #### 2. **Index Operations (Many Files)**
 
@@ -137,7 +137,7 @@ The most computationally intensive operations in Vestigium are:
 - **Bottleneck**: File system traversal and index updates
 - **Testing approach**: Batches from 100 to 500+ files to measure scaling
 - **Good values**: > 1,000 files/s for batch operations
-- **Current performance**: **15,703 files/s average** ✅ Excellent
+- **Current performance**: **16,519 files/s average** ✅ Excellent
 
 #### 3. **Tree Construction (`ves commit`)**
 
@@ -153,19 +153,19 @@ The most computationally intensive operations in Vestigium are:
 - **Bottleneck**: Comparing working directory with index (stat calls + hash comparison)
 - **Testing approach**: Repositories with hundreds of tracked files
 - **Good values**: > 10 ops/s regardless of repository size
-- **Current performance**: **90.8 ops/s** ✅ Excellent
+- **Current performance**: **91.8 ops/s** ✅ Excellent
 
 ### Performance Analysis
 
 **Strengths**:
 
-- **File processing**: Vestigium maintains consistent ~30 MB/s throughput even for large files
-- **Batch operations**: Excellent scalability with 15k+ files/s for many-file operations
-- **Status operations**: Very fast repository state checking at 90+ ops/s
+- **File processing**: Vestigium maintains consistent ~31 MB/s throughput even for large files
+- **Batch operations**: Excellent scalability with 16k+ files/s for many-file operations
+- **Status operations**: Very fast repository state checking at 91+ ops/s
 
 **Scalability characteristics**:
 
-- Large files: Linear scaling with minimal overhead (29.7-31.5 MB/s range)
+- Large files: Linear scaling with minimal overhead (30.6-31.8 MB/s range)
 - Many files: Super-linear performance improvement with batch size
 - Memory usage: Efficient memory management across all test scenarios
 
@@ -173,21 +173,21 @@ The most computationally intensive operations in Vestigium are:
 
 Based on typical hardware and current Vestigium performance, here are the expectations:
 
-**Large Files** (Current: 30.4 MB/s avg):
+**Large Files** (Current: 31.3 MB/s avg):
 
 - Target: > 25 MB/s consistently
 - 1-10MB files: < 1 second per add operation
 - 25-50MB files: < 2 seconds per add operation
 - Commit operations: Should scale linearly with file size
 
-**Many Files** (Current: 15,703 files/s avg):
+**Many Files** (Current: 16,519 files/s avg):
 
 - Target: > 1,000 files/s for batch operations
 - 100+ files: > 10,000 files/s preferred
 - 500+ files: > 5,000 files/s acceptable
 - Deep structures: Should not significantly impact performance
 
-**Status Operations** (Current: 90.8 ops/s):
+**Status Operations** (Current: 91.8 ops/s):
 
 - Target: > 10 ops/s regardless of repository size
 - Large repositories: < 0.5 seconds for status check
