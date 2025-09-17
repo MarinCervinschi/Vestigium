@@ -5,6 +5,7 @@ import zlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import IO, ClassVar, List, Optional
+from functools import lru_cache
 
 from src.core.refs import ref_resolve
 from src.core.repository import VesRepository, repo_dir, repo_file
@@ -201,6 +202,40 @@ class VesBlob(VesObject):
         self.blobdata = data
 
 
+def _object_read_raw(repo: VesRepository, sha: str) -> Optional[tuple[bytes, bytes]]:
+    """
+    Reads the raw data of a VCS object from the repository's object store.
+
+    Returns:
+        Optional[tuple[bytes, bytes]]: A tuple of (object_type, content_data)
+                                       or None if not found.
+    """
+    path = repo_file(repo, "objects", sha[:2], sha[2:])
+
+    if not os.path.isfile(path):
+        return None
+
+    with open(path, "rb") as f:
+        raw = zlib.decompress(f.read())
+
+        object_type_end = raw.find(b" ")
+        if object_type_end == -1:
+            raise Exception(f"Malformed object {sha}: no space separator")
+
+        fmt = raw[:object_type_end]
+
+        object_size_end = raw.find(b"\x00", object_type_end)
+        if object_size_end == -1:
+            raise Exception(f"Malformed object {sha}: no null separator")
+
+        size = int(raw[object_type_end:object_size_end].decode("ascii"))
+        if size != len(raw) - object_size_end - 1:
+            raise Exception(f"Malformed object {sha}: bad length")
+
+        content = raw[object_size_end + 1 :]
+        return (fmt, content)
+
+
 def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
     """
     Reads and deserializes a VCS object from the repository's object store.
@@ -225,36 +260,25 @@ def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
         Exception: If the object is malformed (wrong size) or has unknown type.
 
     """
-    path = repo_file(repo, "objects", sha[:2], sha[2:])
-
-    if not os.path.isfile(path):
+    result = _object_read_raw(repo, sha)
+    if result is None:
         return None
 
-    with open(path, "rb") as f:
-        raw = zlib.decompress(f.read())
+    fmt, content = result
 
-        object_type_end = raw.find(b" ")
-        fmt = raw[:object_type_end]
+    match fmt:
+        case b"commit":
+            c: type[VesObject] = VesCommit
+        case b"tree":
+            c = VesTree
+        case b"tag":
+            c = VesTag
+        case b"blob":
+            c = VesBlob
+        case _:
+            raise Exception(f"Unknown type {fmt.decode('ascii')} for object {sha}")
 
-        object_size_end = raw.find(b"\x00", object_type_end)
-        size = int(raw[object_type_end:object_size_end].decode("ascii"))
-
-        if size != len(raw) - object_size_end - 1:
-            raise Exception(f"Malformed object {sha}: bad length")
-
-        match fmt:
-            case b"commit":
-                c: type[VesObject] = VesCommit
-            case b"tree":
-                c = VesTree
-            case b"tag":
-                c = VesTag
-            case b"blob":
-                c = VesBlob
-            case _:
-                raise Exception(f"Unknown type {fmt.decode('ascii')} for object {sha}")
-
-        return c(raw[object_size_end + 1 :])
+    return c(content)
 
 
 def object_write(obj: VesObject, repo: Optional[VesRepository] = None) -> str:
@@ -327,26 +351,25 @@ def object_find(
         return sha
 
     while True:
-        obj = object_read(repo, sha)
-        #     ^^^^^^^^^^^ < this is a bit agressive: we're reading
-        # the full object just to get its type.  And we're doing
-        # that in a loop, albeit normally short.  Don't expect
-        # high performance here.
-
-        if obj is None:
+        header_result = _object_read_raw(repo, sha)
+        if header_result is None:
             raise Exception(f"Cannot read object {sha}.")
 
-        if obj.fmt == fmt:
+        obj_type = header_result[0]
+
+        if obj_type == fmt:
             return sha
 
         if not follow:
             return None
 
-        # Follow tags
-        if obj.fmt == b"tag":
+        # Follow tags - now we need the full object to get the reference
+        if obj_type == b"tag":
+            obj = object_read(repo, sha)
             assert isinstance(obj, VesTag)
             sha = obj.kvlm[b"object"].decode("ascii")
-        elif obj.fmt == b"commit" and fmt == b"tree":
+        elif obj_type == b"commit" and fmt == b"tree":
+            obj = object_read(repo, sha)
             assert isinstance(obj, VesCommit)
             sha = obj.kvlm[b"tree"].decode("ascii")
         else:
