@@ -3,9 +3,8 @@ import os
 import re
 import zlib
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import IO, ClassVar, List, Optional
-from functools import lru_cache
+from dataclasses import InitVar, dataclass, field
+from typing import IO, Any, Dict, List, Optional
 
 from src.core.refs import ref_resolve
 from src.core.repository import VesRepository, repo_dir, repo_file
@@ -13,7 +12,7 @@ from src.utils.kvlm import kvlm_parse, kvlm_serialize
 from src.utils.tree import VesTreeLeaf, tree_parse, tree_serialize
 
 
-@dataclass
+@dataclass(kw_only=True, slots=True)
 class VesObject(ABC):
     """
     Abstract base class for all VCS objects (blobs, trees, commits, tags).
@@ -23,9 +22,9 @@ class VesObject(ABC):
     or initialized empty (when creating new objects).
     """
 
-    fmt: ClassVar[bytes]  # Must be defined by subclasses
+    data: InitVar[Optional[bytes]] = None
 
-    def __init__(self, data: Optional[bytes] = None) -> None:
+    def __post_init__(self, data: Optional[bytes]) -> None:
         """
         Initialize a VCS object.
 
@@ -38,34 +37,34 @@ class VesObject(ABC):
         else:
             self.init()
 
+    @property
+    @abstractmethod
+    def format_type(self) -> bytes:
+        """Object format type identifier."""
+        pass
+
     @abstractmethod
     def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
         """
         Serialize the object to bytes for storage.
 
-        This method must be implemented by subclasses to convert the object's
-        internal representation back to the byte format used for storage.
-
         Args:
-            repo (Optional[VesRepository]): The repository context for serialization.
+            repo (Optional[VcsRepository]): The repository context for serialization.
 
         Returns:
             bytes: The serialized object data.
         """
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def deserialize(self, data: bytes) -> None:
         """
         Deserialize bytes into the object's internal representation.
 
-        This method must be implemented by subclasses to parse raw byte data
-        from the object store and populate the object's attributes.
-
         Args:
             data (bytes): Raw byte data from the object store.
         """
-        raise NotImplementedError
+        pass
 
     def init(self) -> None:
         """
@@ -77,56 +76,27 @@ class VesObject(ABC):
         pass
 
 
+@dataclass(kw_only=True, slots=True)
 class VesCommit(VesObject):
     """
     Represents a commit object in the VCS.
 
-    Commits store metadata about a change including author, committer,
-    timestamp, commit message, and references to tree and parent commits.
-    The commit data is stored in KVLM (Key-Value List with Message) format.
-
     Attributes:
-        kvlm (dict): Dictionary containing commit metadata with the following structure:
-                    - b'tree': SHA of the tree object
-                    - b'parent': SHA of parent commit(s) (can be multiple for merges)
-                    - b'author': Author information (name, email, timestamp)
-                    - b'committer': Committer information (name, email, timestamp)
-                    - None: Commit message (stored with key None)
-
-
+        kvlm (dict): Dictionary containing commit metadata.
     """
 
-    fmt: ClassVar[bytes] = b"commit"
+    kvlm: Dict[Optional[bytes], Any] = field(default_factory=dict)
 
-    def __init__(self, data: Optional[bytes] = None) -> None:
-        """
-        Initialize a commit object.
-
-        Args:
-            data (Optional[bytes]): Raw commit data in KVLM format to deserialize.
-                                  If None, creates an empty commit object.
-        """
-        super().__init__(data)
+    @property
+    def format_type(self) -> bytes:
+        return b"commit"
 
     def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
-        """
-        Serialize commit object to bytes in KVLM format.
-
-        Args:
-            repo (Optional[VesRepository]): Repository context (unused for commits).
-
-        Returns:
-            bytes: Serialized commit data ready for storage.
-        """
+        """Serialize commit object to bytes in KVLM format."""
         return kvlm_serialize(self.kvlm)
 
     def deserialize(self, data: bytes) -> None:
-        """
-        Deserialize bytes into commit object.
-
-        Args:
-            data (bytes): Raw commit data in KVLM format from object store.
-        """
+        """Deserialize bytes into commit object."""
         self.kvlm = kvlm_parse(data)
 
     def init(self) -> None:
@@ -134,29 +104,18 @@ class VesCommit(VesObject):
         self.kvlm = dict()
 
 
+@dataclass(kw_only=True, slots=True)
 class VesTree(VesObject):
-    """
-    Represents a tree object in the VCS.
+    """Represents a tree object in the VCS."""
 
-    Trees store directory listings with file/directory names, permissions,
-    and SHA hashes of the contained objects.
-    """
+    items: List[VesTreeLeaf] = field(default_factory=list)
 
-    fmt: ClassVar[bytes] = b"tree"
-
-    def __init__(self, data: Optional[bytes] = None) -> None:
-        self.items: list[VesTreeLeaf] = list()
-        super().__init__(data)
+    @property
+    def format_type(self) -> bytes:
+        return b"tree"
 
     def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
-        """Serialize tree object to bytes.
-
-        Args:
-            repo (Optional[VesRepository]): Repository context (unused for trees).
-
-        Returns:
-            bytes: Serialized tree data.
-        """
+        """Serialize tree object to bytes."""
         return tree_serialize(self)
 
     def deserialize(self, data: bytes) -> None:
@@ -167,31 +126,15 @@ class VesTree(VesObject):
         self.items = list()
 
 
-class VesTag(VesCommit):
-    """
-    Represents a tag object in the VCS.
-
-    Tags are lightweight references to commits, often used to mark
-    specific versions or releases.
-    """
-
-    fmt: ClassVar[bytes] = b"tag"
-
-
+@dataclass(kw_only=True, slots=True)
 class VesBlob(VesObject):
-    """
-    Represents a blob object in the VCS.
+    """Represents a blob object in the VCS."""
 
-    Blobs store file content as raw binary data. They are the leaf nodes
-    in the VCS object graph and contain no metadata about filenames or
-    permissions - that information is stored in tree objects.
-    """
+    blobdata: bytes = b""
 
-    fmt: ClassVar[bytes] = b"blob"
-
-    def __init__(self, data: Optional[bytes] = None) -> None:
-        self.blobdata: bytes = b""
-        super().__init__(data)
+    @property
+    def format_type(self) -> bytes:
+        return b"blob"
 
     def serialize(self, repo: Optional[VesRepository] = None) -> bytes:
         """Serialize blob object to bytes."""
@@ -200,6 +143,15 @@ class VesBlob(VesObject):
     def deserialize(self, data: bytes) -> None:
         """Deserialize bytes into blob object."""
         self.blobdata = data
+
+
+@dataclass(kw_only=True, slots=True)
+class VesTag(VesCommit):
+    """Represents a tag object in the VCS."""
+
+    @property
+    def format_type(self) -> bytes:
+        return b"tag"
 
 
 def _object_read_raw(repo: VesRepository, sha: str) -> Optional[tuple[bytes, bytes]]:
@@ -278,7 +230,7 @@ def object_read(repo: VesRepository, sha: str) -> Optional[VesObject]:
         case _:
             raise Exception(f"Unknown type {fmt.decode('ascii')} for object {sha}")
 
-    return c(content)
+    return c(data=content)
 
 
 def object_write(obj: VesObject, repo: Optional[VesRepository] = None) -> str:
@@ -305,7 +257,7 @@ def object_write(obj: VesObject, repo: Optional[VesRepository] = None) -> str:
     data = obj.serialize()
 
     # Create the object format: {type} {size}\0{content}
-    result = obj.fmt + b" " + str(len(data)).encode() + b"\x00" + data
+    result = obj.format_type + b" " + str(len(data)).encode() + b"\x00" + data
     sha = hashlib.sha1(result).hexdigest()
 
     if repo:
@@ -395,13 +347,13 @@ def object_hash(fd: IO[bytes], fmt: bytes, repo: Optional[VesRepository] = None)
 
     match fmt:
         case b"commit":
-            obj: VesObject = VesCommit(data)
+            obj: VesObject = VesCommit(data=data)
         case b"tree":
-            obj = VesTree(data)
+            obj = VesTree(data=data)
         case b"tag":
-            obj = VesTag(data)
+            obj = VesTag(data=data)
         case b"blob":
-            obj = VesBlob(data)
+            obj = VesBlob(data=data)
         case _:
             raise Exception(f"Unknown type {fmt.decode('utf-8')}!")
 

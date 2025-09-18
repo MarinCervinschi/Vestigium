@@ -27,7 +27,7 @@ class TestCatFileCommand:
         assert repo is not None
 
         test_content = b"Hello, World!\nThis is a test file.\n"
-        blob = VesBlob(test_content)
+        blob = VesBlob(data=test_content)
         obj_hash = object_write(blob, repo)
 
         # Test cat-file command - should not crash
@@ -109,7 +109,7 @@ class TestCatFileCommand:
         repo = repo_find()
         assert repo is not None
 
-        empty_blob = VesBlob(b"")
+        empty_blob = VesBlob(data=b"")
         empty_hash = object_write(empty_blob, repo)
 
         args = Namespace(object=empty_hash, type="blob")
@@ -132,7 +132,7 @@ class TestCatFileCommand:
         assert repo is not None
 
         binary_content = bytes(range(256))  # All possible byte values
-        binary_blob = VesBlob(binary_content)
+        binary_blob = VesBlob(data=binary_content)
         binary_hash = object_write(binary_blob, repo)
 
         args = Namespace(object=binary_hash, type="blob")
@@ -156,7 +156,7 @@ class TestCatFileCommand:
 
         # Create large blob (smaller size for testing)
         large_content = b"A" * 10000  # 10KB should be enough for testing
-        large_blob = VesBlob(large_content)
+        large_blob = VesBlob(data=large_content)
         large_hash = object_write(large_blob, repo)
 
         args = Namespace(object=large_hash, type="blob")
@@ -179,7 +179,7 @@ class TestCatFileCommand:
         assert repo is not None
 
         test_content = b"test content"
-        blob = VesBlob(test_content)
+        blob = VesBlob(data=test_content)
         blob_hash = object_write(blob, repo)
 
         # Test with different type specifications (should all work for blob objects)

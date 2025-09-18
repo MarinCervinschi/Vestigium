@@ -140,11 +140,11 @@ def tree_checkout(repo: VesRepository, tree: "VesTree", path: str) -> None:
             raise Exception(f"Failed to read object {item.sha}")
         dest = os.path.join(path, item.path)
 
-        if obj.fmt == b"tree":
+        if obj.format_type == b"tree":
             assert isinstance(obj, VesTree)
             os.mkdir(dest)
             tree_checkout(repo, obj, dest)
-        elif obj.fmt == b"blob":
+        elif obj.format_type == b"blob":
             assert isinstance(obj, VesBlob)
             if item.mode.startswith(b"12"):
                 os.symlink(obj.blobdata.decode("utf8"), dest)

@@ -40,7 +40,7 @@ def cmd_checkout(args: Namespace) -> None:
     if obj is None:
         return
 
-    if obj.fmt == b"commit":
+    if obj.format_type == b"commit":
         assert isinstance(obj, VesCommit)
         obj = object_read(repo, obj.kvlm[b"tree"].decode("ascii"))
 

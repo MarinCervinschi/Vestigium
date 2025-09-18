@@ -62,7 +62,7 @@ class TestRevParseCommand:
         assert repo is not None
 
         # Create a blob object
-        blob = VesBlob(b"test content for rev-parse")
+        blob = VesBlob(data=b"test content for rev-parse")
         blob_sha = object_write(blob, repo)
 
         # Test rev-parse with full SHA
@@ -88,7 +88,7 @@ class TestRevParseCommand:
         assert repo is not None
 
         # Create a blob object
-        blob = VesBlob(b"unique content for partial sha test")
+        blob = VesBlob(data=b"unique content for partial sha test")
         blob_sha = object_write(blob, repo)
 
         # Test rev-parse with partial SHA (first 8 characters)
@@ -193,7 +193,7 @@ class TestRevParseCommand:
         assert repo is not None
 
         # Create a blob object
-        blob = VesBlob(b"test content for type filtering")
+        blob = VesBlob(data=b"test content for type filtering")
         blob_sha = object_write(blob, repo)
 
         # Test rev-parse with blob type filter
@@ -255,10 +255,10 @@ class TestRevParseCommand:
         # This is tricky to test reliably since we can't control the exact SHA
         # So we'll create objects and see if any create ambiguity
 
-        blob1 = VesBlob(b"content1")
+        blob1 = VesBlob(data=b"content1")
         sha1 = object_write(blob1, repo)
 
-        blob2 = VesBlob(b"content2")
+        blob2 = VesBlob(data=b"content2")
         sha2 = object_write(blob2, repo)
 
         # If the first 4 characters are the same, it would be ambiguous
@@ -306,7 +306,7 @@ class TestRevParseCommand:
         assert repo is not None
 
         # Create a blob object
-        blob = VesBlob(b"case sensitivity test")
+        blob = VesBlob(data=b"case sensitivity test")
         blob_sha = object_write(blob, repo)
 
         # Test with uppercase partial SHA
@@ -333,7 +333,7 @@ class TestRevParseCommand:
         assert repo is not None
 
         # Create a blob object
-        blob = VesBlob(b"minimum length test")
+        blob = VesBlob(data=b"minimum length test")
         blob_sha = object_write(blob, repo)
 
         # Test with 4-character SHA (minimum)

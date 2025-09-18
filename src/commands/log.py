@@ -85,7 +85,7 @@ def log_graphviz(repo: VesRepository, sha: str, seen: set) -> None:
         message = message[: message.index("\n")]
 
     print(f'  c_{sha} [label="{sha[0:7]}: {message}"]')
-    assert commit.fmt == b"commit"
+    assert commit.format_type == b"commit"
 
     if not b"parent" in commit.kvlm.keys():
         # Base case: initial commit has no parents

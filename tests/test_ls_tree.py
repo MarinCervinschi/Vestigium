@@ -37,7 +37,7 @@ class TestLsTreeCommand:
         assert repo is not None
 
         # Create a simple blob
-        blob = VesBlob(b"test content")
+        blob = VesBlob(data=b"test content")
         blob_sha = object_write(blob, repo)
 
         # Create a tree with the blob
@@ -71,13 +71,13 @@ class TestLsTreeCommand:
         assert repo is not None
 
         # Create multiple blobs
-        blob1 = VesBlob(b"content 1")
+        blob1 = VesBlob(data=b"content 1")
         blob1_sha = object_write(blob1, repo)
 
-        blob2 = VesBlob(b"content 2")
+        blob2 = VesBlob(data=b"content 2")
         blob2_sha = object_write(blob2, repo)
 
-        blob3 = VesBlob(b"content 3")
+        blob3 = VesBlob(data=b"content 3")
         blob3_sha = object_write(blob3, repo)
 
         # Create a tree with multiple blobs
@@ -117,7 +117,7 @@ class TestLsTreeCommand:
         assert repo is not None
 
         # Create a blob for subdirectory
-        sub_blob = VesBlob(b"subdirectory content")
+        sub_blob = VesBlob(data=b"subdirectory content")
         sub_blob_sha = object_write(sub_blob, repo)
 
         # Create subdirectory tree
@@ -128,7 +128,7 @@ class TestLsTreeCommand:
         sub_tree_sha = object_write(sub_tree, repo)
 
         # Create root blob
-        root_blob = VesBlob(b"root content")
+        root_blob = VesBlob(data=b"root content")
         root_blob_sha = object_write(root_blob, repo)
 
         # Create root tree with subdirectory
@@ -171,7 +171,7 @@ class TestLsTreeCommand:
         assert repo is not None
 
         # Create deep directory structure
-        deep_blob = VesBlob(b"deep content")
+        deep_blob = VesBlob(data=b"deep content")
         deep_blob_sha = object_write(deep_blob, repo)
 
         # Create deepest tree
@@ -189,7 +189,7 @@ class TestLsTreeCommand:
         mid_tree_sha = object_write(mid_tree, repo)
 
         # Create root tree
-        root_blob = VesBlob(b"root content")
+        root_blob = VesBlob(data=b"root content")
         root_blob_sha = object_write(root_blob, repo)
 
         root_tree = VesTree()
@@ -227,13 +227,13 @@ class TestLsTreeCommand:
         assert repo is not None
 
         # Create blobs for different file types
-        regular_blob = VesBlob(b"regular file")
+        regular_blob = VesBlob(data=b"regular file")
         regular_sha = object_write(regular_blob, repo)
 
-        executable_blob = VesBlob(b"#!/bin/bash\necho hello")
+        executable_blob = VesBlob(data=b"#!/bin/bash\necho hello")
         executable_sha = object_write(executable_blob, repo)
 
-        symlink_blob = VesBlob(b"../target")
+        symlink_blob = VesBlob(data=b"../target")
         symlink_sha = object_write(symlink_blob, repo)
 
         # Create tree with different file modes
@@ -294,7 +294,7 @@ class TestLsTreeCommand:
         assert repo is not None
 
         # Create a blob (not a tree)
-        blob = VesBlob(b"this is a blob, not a tree")
+        blob = VesBlob(data=b"this is a blob, not a tree")
         blob_sha = object_write(blob, repo)
 
         # Try to use blob SHA as tree
@@ -342,7 +342,7 @@ class TestLsTreeCommand:
         assert repo is not None
 
         # Create a simple tree
-        blob = VesBlob(b"test content")
+        blob = VesBlob(data=b"test content")
         blob_sha = object_write(blob, repo)
 
         tree = VesTree()
@@ -405,7 +405,7 @@ class TestLsTreeCommand:
         assert repo is not None
 
         # Create blob with short mode
-        blob = VesBlob(b"test")
+        blob = VesBlob(data=b"test")
         blob_sha = object_write(blob, repo)
 
         # Create tree with 5-digit mode (should be padded to 6)
