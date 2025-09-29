@@ -94,8 +94,6 @@ def cmd_status_head_index(repo: VesRepository, index: VesIndex) -> None:
         else:
             print("  added:   ", entry.name)
 
-    # Keys still in HEAD are files that we haven't met in the index,
-    # and thus have been deleted.
     for file_path in head.keys():
         print("  deleted: ", file_path)
 
@@ -128,7 +126,6 @@ def cmd_status_index_worktree(repo: VesRepository, index: VesIndex) -> None:
 
     all_files: List[str] = list()
 
-    # We begin by walking the filesystem
     for root, _, files in os.walk(repo.worktree, True):
         if root == repo.vesdir or root.startswith(vesdir_prefix):
             continue
@@ -137,13 +134,8 @@ def cmd_status_index_worktree(repo: VesRepository, index: VesIndex) -> None:
             rel_path = os.path.relpath(full_path, repo.worktree)
             all_files.append(rel_path)
 
-    # We now traverse the index, and compare real files with the cached
-    # versions.
-
     for entry in index.entries:
         full_path = os.path.join(repo.worktree, entry.name)
-
-        # That file *name* is in the index
 
         if not os.path.exists(full_path):
             print("  deleted: ", entry.name)
