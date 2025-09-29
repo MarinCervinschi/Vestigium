@@ -161,7 +161,7 @@ class TestLibves:
         assert args.command == "rm"
         assert args.path == ["file1.txt", "file2.txt"]
 
-    @patch("src.libves.cmd_init")
+    @patch("src.commands.init.cmd_init")
     def test_main_calls_init_command(self, mock_cmd_init, temp_dir, clean_env):
         """Test that main() correctly calls the init command."""
         main(["init", str(temp_dir)])
@@ -172,7 +172,7 @@ class TestLibves:
         assert call_args.command == "init"
         assert call_args.path == str(temp_dir)
 
-    @patch("src.libves.cmd_add")
+    @patch("src.commands.add.cmd_add")
     def test_main_calls_add_command(self, mock_cmd_add):
         """Test that main() correctly calls the add command."""
         main(["add", "file1.txt", "file2.txt"])
@@ -183,7 +183,7 @@ class TestLibves:
         assert call_args.command == "add"
         assert call_args.path == ["file1.txt", "file2.txt"]
 
-    @patch("src.libves.cmd_commit")
+    @patch("src.commands.commit.cmd_commit")
     def test_main_calls_commit_command(self, mock_cmd_commit):
         """Test that main() correctly calls the commit command."""
         main(["commit", "-m", "Test message"])
@@ -194,7 +194,7 @@ class TestLibves:
         assert call_args.command == "commit"
         assert call_args.message == "Test message"
 
-    @patch("src.libves.cmd_cat_file")
+    @patch("src.commands.cat_file.cmd_cat_file")
     def test_main_calls_cat_file_command(self, mock_cmd_cat_file):
         """Test that main() correctly calls the cat-file command."""
         main(["cat-file", "blob", "abc123"])
@@ -206,7 +206,7 @@ class TestLibves:
         assert call_args.type == "blob"
         assert call_args.object == "abc123"
 
-    @patch("src.libves.cmd_hash_object")
+    @patch("src.commands.hash_object.cmd_hash_object")
     def test_main_calls_hash_object_command(self, mock_cmd_hash_object):
         """Test that main() correctly calls the hash-object command."""
         main(["hash-object", "-w", "test.txt"])
@@ -218,7 +218,7 @@ class TestLibves:
         assert call_args.write == True
         assert call_args.path == "test.txt"
 
-    @patch("src.libves.cmd_log")
+    @patch("src.commands.log.cmd_log")
     def test_main_calls_log_command(self, mock_cmd_log):
         """Test that main() correctly calls the log command."""
         main(["log", "HEAD"])
@@ -229,7 +229,7 @@ class TestLibves:
         assert call_args.command == "log"
         assert call_args.commit == "HEAD"
 
-    @patch("src.libves.cmd_ls_tree")
+    @patch("src.commands.ls_tree.cmd_ls_tree")
     def test_main_calls_ls_tree_command(self, mock_cmd_ls_tree):
         """Test that main() correctly calls the ls-tree command."""
         main(["ls-tree", "-r", "abc123"])
@@ -241,7 +241,7 @@ class TestLibves:
         assert call_args.recursive == True
         assert call_args.tree == "abc123"
 
-    @patch("src.libves.cmd_checkout")
+    @patch("src.commands.checkout.cmd_checkout")
     def test_main_calls_checkout_command(self, mock_cmd_checkout):
         """Test that main() correctly calls the checkout command."""
         main(["checkout", "abc123", "/tmp/dest"])
@@ -253,7 +253,7 @@ class TestLibves:
         assert call_args.commit == "abc123"
         assert call_args.path == "/tmp/dest"
 
-    @patch("src.libves.cmd_show_ref")
+    @patch("src.commands.show_ref.cmd_show_ref")
     def test_main_calls_show_ref_command(self, mock_cmd_show_ref):
         """Test that main() correctly calls the show-ref command."""
         main(["show-ref"])
@@ -263,7 +263,7 @@ class TestLibves:
         call_args = mock_cmd_show_ref.call_args[0][0]
         assert call_args.command == "show-ref"
 
-    @patch("src.libves.cmd_tag")
+    @patch("src.commands.tag.cmd_tag")
     def test_main_calls_tag_command(self, mock_cmd_tag):
         """Test that main() correctly calls the tag command."""
         main(["tag", "-a", "v1.0"])
@@ -275,7 +275,7 @@ class TestLibves:
         assert call_args.create_tag_object == True
         assert call_args.name == "v1.0"
 
-    @patch("src.libves.cmd_rev_parse")
+    @patch("src.commands.rev_parse.cmd_rev_parse")
     def test_main_calls_rev_parse_command(self, mock_cmd_rev_parse):
         """Test that main() correctly calls the rev-parse command."""
         main(["rev-parse", "--ves-type", "commit", "HEAD"])
@@ -287,7 +287,7 @@ class TestLibves:
         assert call_args.type == "commit"
         assert call_args.name == "HEAD"
 
-    @patch("src.libves.cmd_ls_files")
+    @patch("src.commands.ls_files.cmd_ls_files")
     def test_main_calls_ls_files_command(self, mock_cmd_ls_files):
         """Test that main() correctly calls the ls-files command."""
         main(["ls-files", "--verbose"])
@@ -298,7 +298,7 @@ class TestLibves:
         assert call_args.command == "ls-files"
         assert call_args.verbose == True
 
-    @patch("src.libves.cmd_check_ignore")
+    @patch("src.commands.check_ignore.cmd_check_ignore")
     def test_main_calls_check_ignore_command(self, mock_cmd_check_ignore):
         """Test that main() correctly calls the check-ignore command."""
         main(["check-ignore", "file1.txt", "dir/file2.txt"])
@@ -309,7 +309,7 @@ class TestLibves:
         assert call_args.command == "check-ignore"
         assert call_args.path == ["file1.txt", "dir/file2.txt"]
 
-    @patch("src.libves.cmd_status")
+    @patch("src.commands.status.cmd_status")
     def test_main_calls_status_command(self, mock_cmd_status):
         """Test that main() correctly calls the status command."""
         main(["status"])
@@ -319,7 +319,7 @@ class TestLibves:
         call_args = mock_cmd_status.call_args[0][0]
         assert call_args.command == "status"
 
-    @patch("src.libves.cmd_rm")
+    @patch("src.commands.rm.cmd_rm")
     def test_main_calls_rm_command(self, mock_cmd_rm):
         """Test that main() correctly calls the rm command."""
         main(["rm", "file1.txt", "file2.txt"])
@@ -392,7 +392,7 @@ class TestLibves:
         captured = capsys.readouterr()
         assert "Vestigium - A Version Control System" in captured.out
 
-    @patch("src.libves.cmd_init")
+    @patch("src.commands.init.cmd_init")
     def test_main_function_signature_default(self, mock_cmd_init):
         """Test that main() function has the correct default parameter behavior."""
         # The function signature is main(argv: List[str] = sys.argv[1:])
